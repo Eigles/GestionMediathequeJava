@@ -1,0 +1,932 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package calogiciel;
+
+import Modele.Auteur;
+import Modele.DAO.AuteurDAO;
+import Modele.DAO.EtatDAO;
+import Modele.DAO.GenreDAO;
+import Modele.DAO.MediaDAO;
+import Modele.DAO.TypeMediaDAO;
+import Modele.Etat;
+import Modele.Genre;
+import Modele.Media;
+import Modele.TypeMedia;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import static java.awt.Font.PLAIN;
+import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import webservicegoogle.GoogleWebService;
+import webservicegoogle.ObjectBook;
+
+/**
+ *
+ * @author poisson.cdi01
+ */
+public class PanelMedia extends PanelStructure implements ActionListener, ItemListener {
+
+    private JPanel panel, panelVertical;
+    private FenetrePrincipale fenetre;
+    int height,width, margeCote;
+       
+    private JLabel labelTitreMedia,labelEmprunteur,labelGenre,labelLocalisation,labelEtat,labelType,labelIsbn,labelPhoto,labelDescription,zoneApercu,labelResume,labelAnneeParution,labelTome,labelNbPages,labelFormat,labelMaisonEdition;
+    JTextField champTitreMedia,champLocalisation,champIsbn,champPhoto,champAnneeParution,champTome,champNbPages,champFormat,champMaisonEdition,champResume;
+    JComboBox champAuteur,champGenre,champEtat,champType;
+   
+    JTextField champDescription;
+    private JButton boutonValiderAjout,boutonChoisirFichier,boutonValiderModif;
+        
+    public PanelMedia(FenetrePrincipale fenetre)
+    {   
+        super(fenetre, new TableModelMedia(1,"",null,2,""));
+        this.fenetre = fenetre;        
+        labelTitre.setText("Liste de médias");
+        combo1.addItem("Tous les genres");
+        List<Genre> listeCombo1 = (new GenreDAO()).findAll();
+        for(Genre obj : listeCombo1)
+        {
+            combo1.addItem(obj);
+        }
+        combo1.addItemListener(this);
+        this.add(combo2);
+        combo2.addItem("Tous les auteurs");
+        List<Auteur> listeCombo2 = (new AuteurDAO()).findAll();
+        for(Auteur obj : listeCombo2)
+        {
+            combo2.addItem(obj);
+        } 
+        combo2.addItemListener(this);
+        this.add(combo3);
+        combo3.addItem("Toutes les disponibilités");
+        List<Object> listeCombo3 = findAllDispo();
+        for(Object obj : listeCombo3)
+        {
+            combo3.addItem(obj);
+        } 
+        combo3.addItemListener(this);
+        MAJcombo4(new MediaDAO().compterLignes(),1);
+        
+        barreRecherche.setText("Rechercher par titre");
+        
+        boutonAjout.setText("Ajouter Média"); 
+        this.add(combo1);
+        this.add(combo2);
+        this.add(combo3);
+        this.add(combo4);
+        this.add(labelPage);
+        this.add(pagePlus);
+        this.add(pageMoins);
+        this.responsivePanel();
+        this.add(tableauDeroulant);
+        this.setVisible(true);
+    }    
+        
+     // formulaire d'ajout d'un media
+     public void afficherFormulaire(){
+        this.removeAll();
+        JPanel panelAjout = new JPanel();
+        panelAjout.setLayout(new GridLayout(15, 2));  
+        labelTitre.setText("Ajouter un Média");  
+        labelTitreMedia = new JLabel("Titre du média : ");        
+        labelEmprunteur = new JLabel("Auteur : ");        
+        labelGenre = new JLabel("Genre : ");        
+        labelLocalisation = new JLabel("Localisation : ");
+        labelEtat = new JLabel("Etat : ");
+        labelType = new JLabel("Type : ");
+        labelIsbn = new JLabel("ISBN : ");
+        labelPhoto = new JLabel("Photo : ");
+        labelDescription = new JLabel("Description : ");
+        labelResume = new JLabel("Resume : ");
+        labelAnneeParution = new JLabel("Année de parution : ");
+        labelTome = new JLabel("Tome : ");
+        labelNbPages = new JLabel("Nombre de pages : ");
+        labelFormat = new JLabel("Format : ");
+        labelMaisonEdition = new JLabel("Maison d'édition : ");
+        
+        champTitreMedia = new JTextField();
+        champAuteur = new JComboBox();
+        champAuteur.addItem("Auteur");
+        List<Auteur> listeAuteur = (new AuteurDAO()).findAll();
+        for(Auteur obj : listeAuteur)
+        {
+            champAuteur.addItem(obj);
+        }
+        
+        champGenre = new JComboBox();  
+        champGenre.addItem("Genre");
+        List<Genre> listeGenre = (new GenreDAO()).findAll();
+        for(Genre obj : listeGenre)
+        {
+            champGenre.addItem(obj);
+        }
+       
+        champLocalisation = new JTextField();
+        champEtat = new JComboBox();
+        champEtat.addItem("Etat");
+        List<Etat> listeEtat = (new EtatDAO()).findAll();
+        for(Etat obj : listeEtat)
+        { 
+            champEtat.addItem(obj);
+        }
+        
+        champType = new JComboBox();
+        champType.addItem("Type");
+        List<TypeMedia> listeType = (new TypeMediaDAO()).findAll();
+        for(TypeMedia obj : listeType)
+        {
+            champType.addItem(obj);
+        }
+        champIsbn = new JTextField();
+        champIsbn.addKeyListener(this);
+                
+        JPanel panelFile = new JPanel();
+        panelFile.setLayout(new FlowLayout(FlowLayout.LEFT)); 
+        champPhoto = new JTextField("",20);
+        champPhoto.setEditable(false);
+        champPhoto.setPreferredSize(new Dimension(150,25));
+        panelFile.add(champPhoto); 
+        boutonChoisirFichier = new JButton("Parcourir ...");
+        boutonChoisirFichier.setPreferredSize(new Dimension(100,25));
+        panelFile.add(boutonChoisirFichier);
+        boutonChoisirFichier.addActionListener(this);
+        
+        champDescription = new JTextField();
+        
+        champAnneeParution = new JTextField();
+        champTome = new JTextField();
+        champNbPages = new JTextField();
+        champFormat = new JTextField();
+        champMaisonEdition = new JTextField();
+        champResume = new JTextField();
+        
+        boutonValiderAjout = new JButton("Valider");
+        boutonValiderAjout.addActionListener(this);    
+        
+
+        zoneApercu = new JLabel();
+        
+        panelAjout.add(labelTitreMedia);
+        panelAjout.add(champTitreMedia);  
+        panelAjout.add(labelIsbn);        
+        panelAjout.add(champIsbn);
+        panelAjout.add(labelEmprunteur);
+        panelAjout.add(champAuteur);
+        panelAjout.add(labelGenre); 
+        panelAjout.add(champGenre);
+        panelAjout.add(labelLocalisation);
+        panelAjout.add(champLocalisation);
+        panelAjout.add(labelEtat);
+        panelAjout.add(champEtat);
+        panelAjout.add(labelType);
+        panelAjout.add(champType);
+        panelAjout.add(labelDescription);
+        panelAjout.add(champDescription);
+        panelAjout.add(labelResume);
+        panelAjout.add(champResume);        
+        panelAjout.add(labelAnneeParution);
+        panelAjout.add(champAnneeParution);
+        panelAjout.add(labelTome);
+        panelAjout.add(champTome);
+        panelAjout.add(labelNbPages);
+        panelAjout.add(champNbPages);
+        panelAjout.add(labelFormat);
+        panelAjout.add(champFormat);
+        panelAjout.add(labelMaisonEdition);       
+        panelAjout.add(champMaisonEdition);
+        panelAjout.add(labelPhoto);
+        panelAjout.add(panelFile);
+        
+        zoneApercu.setBounds(880,50,300,300);
+        labelTitre.setBounds(50,10,300,30);
+        panelAjout.setBounds(50,50,800,460);
+        boutonValiderAjout.setBounds(750,520,100,30);
+        
+        this.add(zoneApercu);
+        this.add(labelTitre);
+        this.add(panelAjout); 
+        this.add(boutonValiderAjout);
+        this.repaint();
+        this.revalidate();
+    }
+
+    public List<Object> findAllDispo(){
+        List<Object> liste = new ArrayList();
+        liste.add("disponible");
+        liste.add("indisponible");
+        return liste;
+    } 
+   
+    public void verifierDonnees(int action) {
+       
+        if((champTitreMedia.getText().equals(""))||(champLocalisation.getText().equals(""))
+                ||(champIsbn.getText().equals(""))
+                ||(champAuteur.getSelectedItem().equals("Auteur"))||(champGenre.getSelectedItem().equals("Genre"))
+                ||(champEtat.getSelectedItem().equals("Etat"))||(champType.getSelectedItem().equals("Type"))
+                ||(champPhoto.getText().equals(""))||(champDescription.getText().equals("")))
+        {
+            JLabel erreur = new JLabel("tous les champs ne sont pas remplis");
+            erreur.setForeground(Color.red);
+            erreur.setBounds(100, 20, 300, 30);
+            this.add(erreur);
+            this.repaint();
+        }
+        else
+        { 
+            //copie dans un repertoire cible
+            /*FileChannel source = new FileInputStream(champPhoto.getText()).getChannel();
+            FileChannel dest = new FileOutputStream("tutu.png").getChannel();
+            source.transferTo(0, source.size(), dest);*/
+                   
+            // ajout d'un media
+            String titre = champTitreMedia.getText() ;            
+            Auteur auteur = (Auteur) champAuteur.getSelectedItem();
+            Genre genre = (Genre) champGenre.getSelectedItem();            
+            String localisation = champLocalisation.getText();
+            Etat etat = (Etat) champEtat.getSelectedItem();  
+            TypeMedia typeMedia = (TypeMedia) champType.getSelectedItem();
+            String isbn = champIsbn.getText();
+            String lienPhoto = champPhoto.getText();
+            String description = champDescription.getText();
+            int anneeParution = Integer.parseInt(champAnneeParution.getText());
+            String resume = champResume.getText();
+            String tome = champTome.getText();
+            int pages = Integer.parseInt(champNbPages.getText());
+            String format = champFormat.getText();
+            String maisonEdition = champMaisonEdition.getText();
+    
+            MediaDAO m = new MediaDAO();
+            
+            if (action == 1)
+            {
+                m.create(new Media(0,titre,auteur,genre,localisation,etat,isbn,lienPhoto,typeMedia,description,true,anneeParution,resume,tome,pages,format,maisonEdition));
+
+                // affichage du message de reussite                     
+                JOptionPane d = new JOptionPane();
+                d.showMessageDialog(fenetre, "L'ajout a été effectué.", "information", JOptionPane.INFORMATION_MESSAGE);
+
+                actualiser("");
+            }
+            if (action == 2)
+            {
+                m.update(new Media(0,titre,auteur,genre,localisation,etat,isbn,lienPhoto,typeMedia,description,true,anneeParution,resume,tome,pages,format,maisonEdition));
+
+                // affichage du message de reussite
+                this.removeAll();
+                JLabel reussite = new JLabel("La modification a bien été effectuée");
+                reussite.setForeground(Color.yellow);
+                reussite.setBounds(100, 50, 300, 50);
+                this.add(reussite);
+            }
+            
+            this.repaint();
+            
+            // apres un temps d'attente, retour sur la liste des medias
+            this.removeAll();            
+            fenetre.panelMedia = new PanelMedia(fenetre);
+            fenetre.add(fenetre.panelMedia);
+            fenetre.repaint();
+        }
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        
+       if(ae.getSource().equals(boutonAjout))
+       {
+          afficherFormulaire();
+          return;
+       }
+       
+       if(ae.getSource().equals(boutonValiderAjout))
+       {
+         
+               verifierDonnees(1);
+                     
+       }  
+       if(ae.getSource().equals(boutonValiderModif))
+       {
+           verifierDonnees(2);           
+       }   
+       
+       if (ae.getSource().equals(boutonChoisirFichier))
+       {
+           JFileChooser choixfichier = new JFileChooser();
+           int returnVal = choixfichier.showOpenDialog(this);
+           if(returnVal == JFileChooser.APPROVE_OPTION)
+           {
+              String nomfichier = choixfichier.getSelectedFile().getAbsolutePath();
+              champPhoto.setText(nomfichier);
+              zoneApercu.setText("apercu!");  
+              ImageIcon icon;
+               icon = new ImageIcon(nomfichier);
+              zoneApercu.setIcon(icon);
+           } 
+       }
+        if (ae.getSource().equals(pagePlus))
+       {
+           int pageActuelle = (int)combo4.getSelectedItem();
+           if(pageActuelle<combo4.getItemCount())
+           combo4.setSelectedItem(pageActuelle+1);
+       }
+       
+       if (ae.getSource().equals(pageMoins))
+       {
+           int pageActuelle = (int)combo4.getSelectedItem();
+           if(pageActuelle!=1)
+            combo4.setSelectedItem(pageActuelle-1);
+       }
+     
+    } 
+    
+    // filtre
+    @Override
+    public void itemStateChanged(ItemEvent e) 
+    {
+        if (e.getStateChange()==ItemEvent.SELECTED)
+        {
+            boolean comboPage=false;
+            if(e.getSource().equals(combo4))
+                comboPage=true;
+            MAJTableau(comboPage);}
+    } 
+    
+    @Override
+    public void keyReleased(KeyEvent e) 
+    {
+        if (e.getKeyCode() == KeyEvent.VK_ENTER)
+        {
+            JLabel recherche = new JLabel("Recherche en cours..."); 
+            recherche.setBounds((int)(this.getHeight()/2),(int)(this.getWidth()/2), 300, 50);
+            this.add(recherche);
+            //si le champ isbn est validé on remplit les champs automatiquement en instanciant un media aux infos completées
+            if(e.getSource().equals(champIsbn))
+            {
+                System.out.println("isbn inséré");
+                GoogleWebService gws = new GoogleWebService("poisson.cdi01","Cdi321321");
+                try 
+                {
+                    ObjectBook ob = gws.getResult(champIsbn.getText());      
+                    if (!(ob==null))
+                    {
+                        Media m = new Media();
+                        m.setTitre(ob.getTitre());  
+                        m.setAuteur(new Auteur(ob.getAuteurNom(),ob.getAuteurPrenom())); 
+                        m.setTypeMedia(new TypeMedia(0,ob.getType())); 
+                        m.setDescription(ob.getResume());
+                        m.setIsbn(ob.getIsbn13());
+                        String annee = ob.getDatePublication().substring(0, 4);
+                        m.setAnneeParution(Integer.parseInt(annee));
+                        m.setMaisonEdition(ob.getMaisonEdition());
+                        m.setPages(ob.getNbPage());
+                        System.out.println("auteur : "+m.getAuteur());
+                        champTitreMedia.setText(m.getTitre());                    
+
+                        champAuteur.removeAll();
+                        List<Auteur> listeAuteur = (new AuteurDAO()).findAll();
+                        for(Auteur obj : listeAuteur)
+                        {
+                            champAuteur.addItem(obj);
+                            if(obj.toString().equals(m.getAuteur().toString()))
+                            {
+                                champAuteur.setSelectedItem(obj);
+                            }
+                        }
+                        champAuteur.repaint();
+                        champAuteur.revalidate();
+                        
+                        champType.removeAll();
+                        List<TypeMedia> listeType = (new TypeMediaDAO()).findAll();
+                        for(TypeMedia obj : listeType)
+                        {
+                            champType.addItem(obj);
+                            if(obj.toString().equals(m.getTypeMedia().toString()))
+                            {
+                                champType.setSelectedItem(obj);
+                            }
+                        }
+                        champType.repaint();
+                        champType.revalidate();
+                        
+                        champResume.setText(m.getDescription());                        
+                        champAnneeParution.setText(annee);
+                        champMaisonEdition.setText(m.getMaisonEdition());
+                        champNbPages.setText(""+m.getPages());
+                        String image = ob.getImage();
+                        System.out.println("image : "+image);
+                        //copie dans un repertoire cible
+                        /*FileChannel source = new FileInputStream(champPhoto.getText()).getChannel();
+                        FileChannel dest = new FileOutputStream("tutu.png").getChannel();
+                        source.transferTo(0, source.size(), dest);*/
+                    }
+                    else 
+                    {
+                        // affichage du message d'erreur d'isbn                    
+                        JOptionPane d = new JOptionPane();
+                        d.showMessageDialog(fenetre, "Cet isbn n'est pas valide.", "information", JOptionPane.INFORMATION_MESSAGE);                 
+                    }
+                }
+                catch (IOException ex) 
+                {
+                    Logger.getLogger(PanelMedia.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+            }
+            
+            //Si la touche entrée est tapée on ajoute les filtres
+            if(e.getSource().equals(barreRecherche))
+            {
+                MAJTableau(false);
+            }
+            
+        }
+    }
+    
+  /*  //Création du filtre combobox
+    public List<RowFilter<TableModel,Object>> creerFiltre(){
+        
+        ArrayList<RowFilter<TableModel,Object>> filters = new ArrayList<RowFilter<TableModel,Object>>();
+        String text1, text2, text3;
+        text1 = (String) combo1.getSelectedItem();
+        text2 = (String) combo2.getSelectedItem();
+        text3 = (String) combo3.getSelectedItem();
+        try
+        {
+            rf1 = RowFilter.regexFilter(text1,tableau.getColumnModel().getColumnIndex("Genre"));
+            rf2 = RowFilter.regexFilter(text2,tableau.getColumnModel().getColumnIndex("Auteur"));
+            rf3 = RowFilter.regexFilter(text3,tableau.getColumnModel().getColumnIndex("Disponibilité"));
+            filters.add(rf1);
+            filters.add(rf2);
+            filters.add(rf3);
+        }
+        catch (PatternSyntaxException ex)
+        {
+            System.out.println("erreur combo");
+        }
+        if(text1.equals(combo1.getItemAt(0)))
+        {
+             filters.remove(rf1);
+        }
+        if(text2.equals(combo2.getItemAt(0)))
+        {
+             filters.remove(rf2);
+        }
+        if(text3.equals(combo3.getItemAt(0)))
+        {
+             filters.remove(rf3);
+        }
+        return filters; 
+    }
+    
+    
+
+                catch (PatternSyntaxException ex)
+                {
+                    System.out.println("erreur combo");
+                }     
+            }
+        return filters; 
+    }*/
+    
+    public void MAJTableau(boolean comboPage){
+            String recherche="";
+            Auteur auteur =null;
+            String genre="";
+            int dispo=2;
+            int page=1 ;
+            
+           this.remove(tableauDeroulant);
+           if (!barreRecherche.getText().equals("Rechercher par titre"))
+                recherche = barreRecherche.getText();
+           
+           if (!combo2.getSelectedItem().equals("Tous les auteurs"))
+               auteur=(Auteur)combo2.getSelectedItem();
+          
+            
+           if (!combo1.getSelectedItem().equals("Tous les genres"))
+               genre=((Genre)combo1.getSelectedItem()).getCode();
+           
+           if (combo3.getSelectedItem().equals("disponible"))
+                 dispo=1;           
+               
+           if (combo3.getSelectedItem().equals("indisponible"))
+                dispo=0;
+                         
+           if (comboPage){
+               page = (int)combo4.getSelectedItem();
+           }
+               
+              
+           tableauDeroulant=initialiserTableau(new TableModelMedia(page,genre, auteur ,dispo, recherche));
+           int nblignes = new MediaDAO().compterLignesRecherche(genre, auteur, dispo, recherche);
+           MAJcombo4(nblignes,page);
+           responsivePanel();
+           this.add(tableauDeroulant);
+           this.repaint();
+           
+           this.updateUI();
+    }
+    
+    
+    
+    
+    // confirmation et suppression d'un média
+    public void supprimerMedia(int id)
+    {
+        // demande de confirmation
+        JOptionPane d = new JOptionPane();
+        int retour = d.showConfirmDialog(fenetre, "Etes vous sur de vouloir supprimer", "Suppression", JOptionPane.OK_CANCEL_OPTION); 
+       
+        // ok : 0 -- annuler : 2 -- close : -1
+        // suppression + actualisation de la page
+        if(retour==0)
+        {
+            MediaDAO media = new MediaDAO();
+            media.delete(id);
+            fenetre.panelMedia = new PanelMedia(fenetre);
+            fenetre.add(fenetre.panelMedia);
+            fenetre.repaint();
+        }
+    }
+    
+    @Override
+    public void mouseClicked(MouseEvent arg0) {
+        
+        if(arg0.getSource().equals(tableau)){
+        if (arg0.getClickCount() == 2)
+        {
+           Point p = arg0.getPoint();
+
+           int row = tableau.rowAtPoint(p);
+           int column = tableau.convertColumnIndexToModel(tableau.columnAtPoint(p));
+           if (row >= 0 && column >= 0) 
+           {
+               Media media = (Media)((TableModelMedia)tableau.getModel()).getObject(row);
+               afficherFiche(media);
+            }   
+            }
+        }
+    }
+    
+    
+    public void css(JComponent component, JPanel panel, String police, int taille, Color color, int margeG, int margeH, int largeur, int hauteur){      
+        
+        component.setForeground(color);
+        component.setFont(new Font(police,PLAIN,taille));
+        component.setBounds(margeG,margeH,largeur,hauteur);
+        panel.add(component);
+        
+    }
+    public void css(JPanel component, JPanel panel, String police, int taille, Color color, int margeG, int margeH, int largeur, int hauteur){      
+        
+        component.setForeground(Color.BLUE);
+        component.setBackground(color);
+        component.setFont(new Font(police,PLAIN,taille));
+        component.setBounds(margeG,margeH,largeur,hauteur);
+        panel.add(component);
+        
+    }
+    
+    public void afficherFiche(Media media){
+        this.removeAll();
+       // fenetre.remove(fenetre.panelCourant); 
+        panelVertical = new JPanel();
+        panelVertical.setBackground((fenetre.panelCourant.getBackground()).darker());
+        panelVertical.setLayout(new BoxLayout(panelVertical, BoxLayout.PAGE_AXIS));
+        panel = new JPanel();
+        panel.setBackground((fenetre.panelCourant.getBackground()).brighter());
+        panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+        JLabel champGenre,champType,champEtat,champAcquisition,champDescription,champAuteur,champLocalisation,champTitreMedia,champIsbn,labelAuteur,labelAcquisition,champResume,champAnneeParution,champTome,champNbPages,champFormat,champMaisonEdition;
+       // List<JLabel> listeLabel = new ArrayList<JLabel>();
+        JLabel labelTitre = new JLabel("Fiche de média"); 
+        labelTitreMedia = new JLabel("Titre du média : ");        
+        labelAuteur = new JLabel("Auteur : ");        
+        labelGenre = new JLabel("Genre : ");      
+        labelType = new JLabel("Type : ");
+        labelLocalisation = new JLabel("Localisation : "); 
+        labelIsbn = new JLabel("ISBN : ");        
+        labelEtat = new JLabel("Etat : ");
+        labelDescription = new JLabel("Description : ");     
+        labelPhoto = new JLabel("Photo : "); 
+        labelResume = new JLabel("Resume : ");
+        labelAnneeParution = new JLabel("Année de parution : ");
+        labelTome = new JLabel("Tome : ");
+        labelNbPages = new JLabel("Nombre de pages : ");
+        labelFormat = new JLabel("Format : ");
+        labelMaisonEdition = new JLabel("Maison d'édition : ");
+        
+        if((media.getTitre())==null)
+            champTitreMedia = new JLabel("VIDE");
+            else
+                champTitreMedia = new JLabel(media.getTitre());
+        if((media.getAuteur())==null)
+            champAuteur = new JLabel("VIDE");
+            else
+                champAuteur = new JLabel(media.getAuteur().getNom()+" "+media.getAuteur().getPrenom());
+        if((media.getGenre())==null)
+            champGenre = new JLabel("VIDE"); 
+            else
+                champGenre = new JLabel(media.getGenre().getLibelle()); 
+        if((media.getTypeMedia())==null)
+            champType = new JLabel("VIDE");
+            else
+                champType = new JLabel(media.getTypeMedia().getLibelle());
+        if((media.getLocalisation())==null)
+            champLocalisation = new JLabel("VIDE");  
+            else
+                champLocalisation = new JLabel(media.getLocalisation());
+        champIsbn = new JLabel(""+media.getIsbn());
+        if((media.getEtat())==null)
+            champEtat = new JLabel("VIDE");
+            else
+                champEtat = new JLabel(media.getEtat().getLibelle());
+        champAcquisition = new JLabel("rien"); 
+        if((media.getDescription()).isEmpty())            
+            champDescription = new JLabel("VIDE");
+            else
+                champDescription = new JLabel(media.getDescription());
+
+        champResume = new JLabel(media.getResume());
+        champAnneeParution = new JLabel(""+media.getAnneeParution());
+        champTome = new JLabel(media.getTome());
+        champNbPages = new JLabel(""+media.getPages());
+        champFormat = new JLabel(media.getFormat());
+        champMaisonEdition = new JLabel(media.getMaisonEdition());
+        
+        
+        String nomfichier;
+        zoneApercu = new JLabel();
+        if(!(media.getLienPhoto()==null))
+        {    
+            nomfichier = media.getLienPhoto(); 
+            ImageIcon icon = new ImageIcon(nomfichier);
+            zoneApercu.setIcon(icon);            
+        }
+        else
+        {
+            zoneApercu.setText("Pas d'image pour ce média");
+        }
+        
+        css(labelTitreMedia,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(new JLabel("  "),panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);        
+        css(labelAuteur,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(labelGenre,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(labelType,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(labelLocalisation,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(labelIsbn,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(labelEtat,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(labelDescription,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);       
+        css(labelAnneeParution,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(labelTome,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(labelNbPages,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(labelFormat,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);        
+        css(labelMaisonEdition,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(labelResume,panelVertical,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        
+        css(champTitreMedia,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        champTitreMedia.setFont(new Font("Times New Roman",Font.BOLD,25));
+        css(new JLabel("  "),panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champAuteur,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champGenre,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champType,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champLocalisation,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champIsbn,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champEtat,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champDescription,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champAnneeParution,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champTome,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champNbPages,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champFormat,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champMaisonEdition,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        css(champResume,panel,"Times New Roman",20,Color.darkGray,0,0,0,0);
+        
+        
+        css(labelTitre,this,"Times New Roman",30,Color.GRAY,fenetre.WidthEcran(0.35),fenetre.WidthEcran(0.03),fenetre.WidthEcran(0.45),fenetre.HeightEcran(0.05));
+        css(panelVertical,this,"Times New Roman",20,Color.white,fenetre.WidthEcran(0.20),fenetre.WidthEcran(0.07),fenetre.WidthEcran(0.15),fenetre.HeightEcran(0.50));
+        css(panel,this,"Times New Roman",20,Color.white,fenetre.WidthEcran(0.35),fenetre.WidthEcran(0.07),fenetre.WidthEcran(0.30),fenetre.HeightEcran(0.50));
+        css(zoneApercu,this,"Times New Roman",20,Color.BLUE,fenetre.WidthEcran(0.65),fenetre.WidthEcran(0.05),fenetre.WidthEcran(0.25),fenetre.HeightEcran(0.50));
+       
+        this.responsivePanel();
+        this.repaint();
+        this.revalidate();
+    }   
+    
+    
+    public void modifierMedia(Media media)
+    {
+        this.removeAll();
+        JPanel panelAjout = new JPanel();
+        panelAjout.setLayout(new GridLayout(15, 2));
+        labelTitre.setText("Modifier un Média");       
+        labelTitreMedia = new JLabel("Titre du média : ");        
+        labelEmprunteur = new JLabel("Auteur : ");        
+        labelGenre = new JLabel("Genre : ");        
+        labelLocalisation = new JLabel("Localisation : ");
+        labelEtat = new JLabel("Etat : ");
+        labelType = new JLabel("Type : ");
+        labelIsbn = new JLabel("ISBN : ");
+        labelPhoto = new JLabel("Photo : ");
+        labelDescription = new JLabel("Description : ");        
+        labelResume = new JLabel("Resume : ");
+        labelAnneeParution = new JLabel("Année de parution : ");
+        labelTome = new JLabel("Tome : ");
+        labelNbPages = new JLabel("Nombre de pages : ");
+        labelFormat = new JLabel("Format : ");
+        labelMaisonEdition = new JLabel("Maison d'édition : ");
+        
+        if(media.getTitre()!=null)
+        champTitreMedia = new JTextField(media.getTitre());
+        
+        champAuteur = new JComboBox();        
+        List<Auteur> listeAuteur = (new AuteurDAO()).findAll();
+        for(Auteur obj : listeAuteur)
+        {
+            champAuteur.addItem(obj);
+            if(obj.getIdAuteur()==media.getAuteur().getIdAuteur())
+                champAuteur.setSelectedItem(media.getAuteur().toString());
+        }
+        if(media.getAuteur()!=null)
+            champAuteur.setSelectedItem(media.getAuteur().toString());
+        champAuteur.addItemListener(this);
+        
+        champGenre = new JComboBox(); 
+        List<Genre> listeGenre = (new GenreDAO()).findAll();
+        for(Genre obj : listeGenre)
+        {
+            champGenre.addItem(obj);
+          /*  if(obj.getIdGenre()==media.getGenre().getIdGenre())
+                champGenre.setSelectedItem(media.getGenre().toString());     */
+        }
+       // if(media.getGenre()!=null)
+        
+        champGenre.addItemListener(this);
+        
+        if(media.getLocalisation()!=null)
+        champLocalisation = new JTextField(media.getLocalisation());
+        
+        champEtat = new JComboBox();                                                                 
+        List<Etat> listeEtat = (new EtatDAO()).findAll();                                           //\\
+        for(Etat obj : listeEtat)                                                                  //  \\
+        {                                                                                         //    \\
+            champEtat.addItem(obj);                                                              //      \\
+          /*  if(obj.getIdEtat()==media.getEtat().getIdEtat())                                  
+               champGenre.setSelectedItem(media.getEtat().toString()); */       
+            
+        }
+       //  if(media.getEtat()!=null)
+       //  champEtat.setSelectedItem(media.getEtat().toString());
+        champEtat.addItemListener(this);
+        
+        champType = new JComboBox();
+        List<TypeMedia> listeType = (new TypeMediaDAO()).findAll();
+        for(TypeMedia obj : listeType)
+        {
+            champType.addItem(obj);
+            /* if(obj.getIdTypeMedia()==media.getTypeMedia().getIdTypeMedia())
+               champGenre.setSelectedItem(media.getEtat().toString());  */    
+        }
+       // if(media.getTypeMedia()!=null)
+      //  champType.setSelectedItem(media.getTypeMedia().toString());
+        champType.addItemListener(this);
+        
+        if(media.getTypeMedia()!=null)
+        champIsbn = new JTextField(media.getIsbn());
+        
+        JPanel panelFile = new JPanel();       
+        if(media.getLienPhoto()!=null)
+            champPhoto = new JTextField(media.getLienPhoto());
+        else champPhoto = new JTextField("",20);
+            champPhoto.setEditable(false);         
+        
+        panelFile.add(champPhoto); 
+        
+        boutonChoisirFichier = new JButton("Choisir ...");
+        panelFile.add(boutonChoisirFichier);
+        boutonChoisirFichier.addActionListener(this);
+        
+        if(media.getDescription()!=null)
+        champDescription = new JTextField(media.getDescription());
+        champAnneeParution = new JTextField(media.getAnneeParution());
+        if(media.getTome()!=null)
+            champTome = new JTextField(media.getTome());
+        else
+            champTome = new JTextField();
+        champNbPages = new JTextField(media.getPages());
+        if(media.getFormat()!=null)
+        champFormat = new JTextField(media.getFormat());
+        if(media.getMaisonEdition()!=null)
+        champMaisonEdition = new JTextField(media.getMaisonEdition());
+        else
+            champMaisonEdition = new JTextField();
+        if(media.getResume()!=null)
+        champResume = new JTextField(media.getResume());
+        
+        boutonValiderModif = new JButton("Valider");
+        boutonValiderModif.addActionListener(this);       
+
+        zoneApercu = new JLabel();
+//        this.style.getStylePanelStructure(this);
+        panelAjout.add(labelTitreMedia);
+        panelAjout.add(champTitreMedia);        
+        panelAjout.add(labelEmprunteur);
+        panelAjout.add(champAuteur);
+        panelAjout.add(labelGenre); 
+        panelAjout.add(champGenre);
+        panelAjout.add(labelLocalisation);
+        panelAjout.add(champLocalisation);
+        panelAjout.add(labelEtat);
+        panelAjout.add(champEtat);
+        panelAjout.add(labelType);
+        panelAjout.add(champType);
+        panelAjout.add(labelIsbn);        
+        panelAjout.add(champIsbn);
+        panelAjout.add(labelPhoto);
+        panelAjout.add(panelFile);
+        panelAjout.add(labelDescription);
+        panelAjout.add(champDescription);
+        panelAjout.add(labelResume);
+        panelAjout.add(champResume);        
+        panelAjout.add(labelAnneeParution);
+        panelAjout.add(champAnneeParution);
+        panelAjout.add(labelTome);
+        panelAjout.add(champTome);
+        panelAjout.add(labelNbPages);
+        panelAjout.add(champNbPages);
+        panelAjout.add(labelFormat);
+        panelAjout.add(champFormat);
+        panelAjout.add(labelMaisonEdition);       
+        panelAjout.add(champMaisonEdition);
+        
+        this.zoneApercu.setBounds(880,50,300,300);
+        this.labelTitre.setBounds(50,10,300,30);
+        panelAjout.setBounds(50,50,800,400);
+        boutonValiderModif.setBounds(50,470,100,40);
+//        this.style.getStylePanelStructure(this);
+        this.add(zoneApercu);
+        this.add(labelTitre);
+        this.add(panelAjout); 
+        this.add(boutonValiderModif);
+        this.repaint();
+        this.revalidate();
+    /*
+            System.out.println("h:"+tableau.getRowHeight());
+            System.out.println("id"+id);
+            MediaDAO media = new MediaDAO();
+            media.delete(id);
+            fenetre.remove(fenetre.panelCourant);
+            fenetre.panelCourant = new PanelMedia(fenetre);
+            fenetre.add(fenetre.panelCourant);
+            fenetre.repaint();*/
+        
+    }
+    
+    // retourne sur le tableau général
+    public void actualiser(String action)
+    {
+        this.responsivePanel();
+        this.updateUI();
+    }
+    private String getLocalisation()
+    {
+        String codeGenre,prenom,nom,localisation;
+        if(champGenre != null && champAuteur != null)
+        {
+        codeGenre = ((Genre)champGenre.getSelectedItem()).getCode();
+        prenom = ((Auteur)champAuteur.getSelectedItem()).getPrenom().substring(0,1).toUpperCase();
+        nom = ((Auteur)champAuteur.getSelectedItem()).getNom().substring(0,2).toUpperCase();
+        localisation = codeGenre.concat(" ").concat(prenom).concat(nom);
+        }
+        else
+        {
+            localisation = null;
+        }
+        return localisation;
+    }
+}

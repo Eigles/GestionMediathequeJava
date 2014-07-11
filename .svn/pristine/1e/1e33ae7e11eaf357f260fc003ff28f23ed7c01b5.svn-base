@@ -1,0 +1,45 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package Modele;
+
+/**
+ *
+ * @author martineau.cdi01
+ */
+public class TypeMedia {
+
+    private int idTypeMedia;
+    private String libelle;
+    
+    public TypeMedia(int id, String libelle){
+        
+        this.idTypeMedia = id;
+        this.libelle = libelle;
+    }
+    
+    public int getIdTypeMedia() {
+        return idTypeMedia;
+    }
+
+    public void setIdTypeMedia(int idTypeMedia) {
+        this.idTypeMedia = idTypeMedia;
+    }
+
+    public String getLibelle() {
+        return libelle;
+    }
+
+    public void setLibelle(String libelle) {
+        this.libelle = libelle;
+    }
+
+    @Override
+    public String toString() {
+        return libelle;
+    }
+    
+}

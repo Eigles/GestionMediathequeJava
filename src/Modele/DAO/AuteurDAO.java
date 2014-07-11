@@ -1,0 +1,169 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package Modele.DAO;
+
+//import static Modele.DAO.fermeturesSilencieuses;
+import Modele.Auteur;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ *
+ * @author martineau.cdi01
+ */
+public class AuteurDAO extends DAO<Auteur>{
+         
+    public AuteurDAO(Connection conn){
+        super(conn);
+    
+    }
+    
+    public AuteurDAO(){
+        super();
+    
+    }
+
+    @Override
+    public boolean create(Auteur obj) {
+        
+        String createQuery = "INSERT INTO AUTEUR (nom_Auteur,prenom_Auteur,description_Auteur,date_Naissance)  VALUES (?,?,?,?)";
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(createQuery);
+            pstmt.setString(1, obj.getNom());
+            pstmt.setString(2, obj.getPrenom());
+            pstmt.setString(3, obj.getDescription());
+            pstmt.setDate(4, obj.getDateNaissance());
+            pstmt.executeUpdate();
+           
+        } catch (SQLException ex) {
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return true;
+    }
+    
+
+    @Override
+    public boolean delete(int id) {
+        
+       String deleteQuery = "DELETE FROM AUTEUR WHERE id_Auteur = ? ";
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(deleteQuery);
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+           
+        } catch (SQLException ex) {
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return true;
+    }
+    
+
+    @Override
+    public boolean update(Auteur obj) {
+        String updateQuery = "UPDATE AUTEUR SET nom_Auteur = ? , prenom_Auteur = ? ,description_Auteur = ? , date_Naissance = ? WHERE id_Auteur = ?";
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setString(1, obj.getNom());
+            pstmt.setString(2, obj.getPrenom());
+            pstmt.setString(3, obj.getDescription());
+            pstmt.setDate(4, obj.getDateNaissance());
+            pstmt.setInt(5, obj.getIdAuteur());
+            pstmt.executeUpdate();
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
+        
+        return true;
+    }
+    
+
+    @Override
+    public Auteur find(int id) {
+        
+        String updateQuery = "SELECT * FROM AUTEUR WHERE id_Auteur = ?";
+        Auteur auteur = null;
+        
+        try {
+            
+           // connexion = getConnection();
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setInt(1, id);
+            resultSet = pstmt.executeQuery();
+            
+            if(resultSet.first()){
+                auteur = new Auteur(resultSet.getInt(1),resultSet.getString(2),resultSet.getString(3),resultSet.getString(4),resultSet.getDate(5));
+            }
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
+        
+        return auteur;
+    }
+
+   
+    public ArrayList<Auteur> findAll() {
+        
+        ArrayList<Auteur> list = new ArrayList();
+        String updateQuery = "SELECT * FROM AUTEUR ";
+        Auteur auteur;
+        
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            resultSet = pstmt.executeQuery();
+            
+            while (resultSet.next()){
+                auteur = new Auteur(resultSet.getInt(1),resultSet.getString(2),resultSet.getString(3),resultSet.getString(4),resultSet.getDate(5));
+                list.add(auteur);
+            }
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
+        
+        return list;
+        
+    }    
+    
+    public boolean existerAuteur(String nom, String prenom) throws ClassNotFoundException, SQLException
+    {
+        boolean resultat = false;
+        ResultSet rs = null;
+        try
+        {
+            String req = "SELECT *  FROM AUTEUR where nom_Auteur = '"+nom+"' AND prenom_Auteur = '"+prenom+"'";
+            Statement stmt = connexion.createStatement();
+            rs = stmt.executeQuery(req);
+            if(rs.next()) resultat = true;
+            else resultat = false;
+        }
+        catch(Exception e)
+        {
+             System.out.println("erreur classe Auteur fonction existerAuteur()");
+        }
+        return resultat;
+    }
+}

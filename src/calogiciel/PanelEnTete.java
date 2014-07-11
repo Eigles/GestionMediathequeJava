@@ -1,0 +1,115 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package calogiciel;
+
+import java.awt.Color;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+/**
+ *
+ * @author zemouri.cdi01
+ */
+public class PanelEnTete extends JPanel implements MouseListener{
+    private JLabel labelTitre,imageAccueil,labelAccueil;
+    private FenetrePrincipale fenetrePrincipale;
+    private Style style;
+    private int height,width,margeCote,widthImage,centrerLabel,widthLabel,heightLabel;
+    private ImageIcon icon;
+    public PanelEnTete(FenetrePrincipale fenetre)
+    {   
+        this.fenetrePrincipale = fenetre;
+        this.setLayout(null);
+        labelTitre = new JLabel("Clés d'asie");
+        icon = new ImageIcon("resources/accueil.png");
+        imageAccueil = new JLabel(icon);
+        labelAccueil = new JLabel();
+        labelAccueil.setText("Accueil");
+        labelAccueil.setForeground(Color.WHITE);
+        imageAccueil.addMouseListener(this);
+        style = new Style();
+        this.style.getStylePanelEnTete(this);
+        this.add(imageAccueil);
+        this.add(labelTitre);
+        this.setVisible(true);
+        this.setComponentZOrder(labelAccueil,0);
+        this.setComponentZOrder(imageAccueil,1);
+        /*Positionnement responsive*/
+        responsivePanel();
+    }
+
+    public JLabel getLabelTitre() {
+        return labelTitre;
+    }
+
+    public void setLabelTitre(JLabel labelTitre) {
+        this.labelTitre = labelTitre;
+    }
+    
+    public void responsivePanel()
+    {
+        height = this.fenetrePrincipale.HeightEcran(0.12);
+        margeCote = this.fenetrePrincipale.WidthEcran(0.00);
+        width = (this.fenetrePrincipale.WidthEcran(1)-(2*margeCote));
+        this.setBounds(margeCote,0,width, height);
+        widthImage = (int)(width*0.20);
+        widthLabel = (int)(width*0.20);
+        heightLabel = (int)(this.getHeight()*1);
+        centrerLabel = (int)((width/2)- (widthLabel/2));
+        labelTitre.setBounds(centrerLabel,0, widthLabel, height);
+        imageAccueil.setBounds(0, 0, widthImage, heightLabel);
+        labelAccueil.setBounds((int)(this.getWidth()*0.088),(int)(this.getHeight()*0.35),300,100);
+    }
+    @Override
+    public void mousePressed(MouseEvent e) {
+            // Cette méthode est appelée quand l'utilisateur appuie le bouton sur le composant écouté
+    }
+ 
+    @Override
+	public void mouseReleased(MouseEvent e) {
+		// Cette méthode est appelée quand l'utilisateur relâche le bouton sur le composant écouté
+	}
+ 
+    @Override
+	public void mouseClicked(MouseEvent e) {
+            if(e.getSource().equals(imageAccueil)) {
+                /*efface les panel instanciés*/
+                fenetrePrincipale.getContentPane().removeAll();
+                
+                /*Instanciés panel entete*/
+                fenetrePrincipale.panelEnTete = new PanelEnTete(fenetrePrincipale);
+                fenetrePrincipale.add(fenetrePrincipale.panelEnTete);
+                fenetrePrincipale.panelAccueil = new PanelAccueil(fenetrePrincipale);
+                fenetrePrincipale.add(fenetrePrincipale.panelAccueil); 
+                fenetrePrincipale.repaint();
+            }
+	}
+
+    public JLabel getImageAccueil() {
+        return imageAccueil;
+    }
+
+    public void setImageAccueil(JLabel imageAccueil) {
+        this.imageAccueil = imageAccueil;
+    }
+ 
+    @Override
+	public void mouseEntered(MouseEvent e) {
+            labelAccueil.setForeground(Color.red);
+            imageAccueil.setToolTipText("retour à l'accueil");
+		// Cette méthode est appelée quand la souris entre dans la zone du composant écouté
+	}
+ 
+    @Override
+	public void mouseExited(MouseEvent e) {
+		// Cette méthode est appelée quand la souris sort de la zone du composant écouté
+            labelAccueil.setForeground(Color.white);
+	}
+} 

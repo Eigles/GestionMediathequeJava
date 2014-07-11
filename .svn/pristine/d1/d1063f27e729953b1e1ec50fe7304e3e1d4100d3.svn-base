@@ -1,0 +1,161 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package calogiciel;
+
+import Modele.Adherent;
+import Modele.DAO.AdherentDAO;
+import Modele.DAO.PersonneDAO;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.PatternSyntaxException;
+import javax.swing.JOptionPane;
+import javax.swing.RowFilter;
+import javax.swing.table.TableModel;
+
+/**
+ *
+ * @author zemouri.cdi01
+ */
+public class PanelAdherent extends PanelStructure implements ActionListener, ItemListener{
+    
+    
+    public PanelAdherent(FenetrePrincipale fenetre){
+       
+        super(fenetre,new TableModelAdherent());
+        labelTitre.setText("Liste des adhérents");
+       
+        //Création du filtre par état
+        combo1.addItem("Etat");
+        combo1.addItem("En attente");
+        combo1.addItem("Confirmé");
+        combo1.addItemListener(this);
+        barreRecherche.setText("Rechercher par nom et prénom");
+        
+        boutonAjout.setText("Ajouter Adhérent");
+        MAJcombo4(new AdherentDAO().compterLignesRecherche(""),1);
+        this.add(labelPage);
+        this.add(pagePlus);
+        this.add(pageMoins);
+        this.add(tableauDeroulant);
+        this.add(combo1);
+        this.setVisible(true);
+        this.responsivePanel();
+    }
+
+      
+    
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        if(ae.getSource().equals(boutonAjout))
+        {
+            fenetre.panelAjoutPersonne = new PanelAjoutPersonne(fenetre, "Ajouter un adhérent");
+            fenetre.add(fenetre.panelAjoutPersonne);
+            fenetre.repaint();
+            fenetre.panelAjoutPersonne.updateUI();
+        }
+    }
+    
+    
+    public void MAJTableau(){
+        this.remove(tableauDeroulant);
+           tableauDeroulant=initialiserTableau(new TableModelAdherent());
+           responsivePanel();
+           this.add(tableauDeroulant);
+           this.repaint();
+           this.updateUI();
+          fooBarFilter = RowFilter.andFilter(((PanelAdherent)this).creerFiltreRecherche());
+          sorter.setRowFilter(fooBarFilter);
+    }
+    
+    
+    //Création du filtre combobox
+    public List<RowFilter<TableModel,Object>> creerFiltre(){
+        
+        ArrayList<RowFilter<TableModel,Object>> filters = new ArrayList<RowFilter<TableModel,Object>>();
+        String text1;
+        text1 = (String) combo1.getSelectedItem();
+        if (text1.equals("Etat"))text1="";
+        try
+        {
+            rf1 = RowFilter.regexFilter(text1,tableau.getColumnModel().getColumnIndex("Etat"));            
+            filters.add(rf1);
+        }
+        catch (PatternSyntaxException ex)
+        {
+            System.out.println("erreur combo");
+        }
+        if(text1.equals(combo1.getItemAt(0)))
+        {
+             filters.remove(rf1);
+        }
+       
+        return filters; 
+    }
+    
+    
+    //Création des filtres de recherche + ajout des filtres combobox
+    public List<RowFilter<TableModel,Object>> creerFiltreRecherche(){
+        
+          ArrayList<RowFilter<TableModel,Object>> filters = new ArrayList<RowFilter<TableModel,Object>>();
+            
+            String text1;
+            text1 = (String) barreRecherche.getText();
+            
+              filters.addAll(creerFiltre());
+              
+              if(!(text1.isEmpty()||text1.equals("Rechercher par nom et prénom"))){
+                    try
+                    {
+                          rf4 = RowFilter.regexFilter(text1,0);
+                          filters.add(rf4);  
+                  }
+
+                catch (PatternSyntaxException ex)
+                {
+                    System.out.println("erreur combo");
+                }     
+            }
+        return filters; 
+    }
+    
+        // confirmation et suppression d'un média
+    public void supprimerAdherent(int id) 
+    {
+        // demande de confirmation
+        JOptionPane d = new JOptionPane();
+        int retour = d.showConfirmDialog(fenetre, "Etes vous sur de vouloir supprimer", "Suppression", JOptionPane.OK_CANCEL_OPTION); 
+       
+        // ok : 0 -- annuler : 2 -- close : -1
+        // suppression + actualisation de la page
+        if(retour==0)
+        {
+            AdherentDAO adherent = new AdherentDAO();
+            adherent.delete(id);
+            fenetre.panelAdherent = new PanelAdherent(fenetre);
+            fenetre.add(fenetre.panelAdherent);
+            fenetre.repaint();
+        }
+    }
+   
+
+    void modifierAdherent(Adherent adherent) {
+         changerPanel("Modifier un adhérent");
+         fenetre.panelAjoutPersonne.initialiserModif(adherent);
+    }
+    
+    public void changerPanel(String titre){
+        
+        fenetre.panelAjoutPersonne = new PanelAjoutPersonne(fenetre,titre);
+        fenetre.add(fenetre.panelAjoutPersonne);
+        fenetre.panelAjoutPersonne.updateUI();
+        fenetre.repaint();
+    }
+    
+ }

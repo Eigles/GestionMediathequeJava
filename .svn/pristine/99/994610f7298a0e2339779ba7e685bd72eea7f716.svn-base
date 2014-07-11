@@ -1,0 +1,284 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package Modele.DAO;
+
+
+
+import Modele.Emprunt;
+import Modele.Media;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ *
+ * @author martineau.cdi01
+ */
+public class EmpruntDAO extends DAO<Emprunt>{
+    
+    public EmpruntDAO(){
+        super();
+    }
+    
+    public EmpruntDAO(Connection conn){
+        super(conn);
+    }
+
+    @Override
+    public boolean create(Emprunt obj) {
+         String create="INSERT INTO EMPPRUNTE(date_emprunt,date_retour, id_Personne, id_Media, etat, lieu) VALUES (?,?,?,?,'En cours',1)";
+        try {
+           
+            PreparedStatement pstmt = connexion.prepareStatement(create);
+            
+            pstmt.setString(1, obj.getDateEmprunt());
+            pstmt.setString(2, obj.getDateEmprunt());
+            pstmt.setInt(3, obj.getPersonne().getId_Personne());
+            pstmt.setInt(4, obj.getMedia().getIdMedia());
+            pstmt.executeUpdate();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return true;
+    }
+
+    
+   
+    @Override
+    public boolean delete(int id) {
+         String deleteQuery = "DELETE FROM EMPPRUNTE WHERE id_Emprunt = ? ";
+        try {
+            
+           // connexion = getConnection();
+            PreparedStatement pstmt = connexion.prepareStatement(deleteQuery);
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+           
+        } catch (SQLException ex) {
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return true;
+    }
+
+    @Override
+    public boolean update(Emprunt obj) {
+        
+        String updateQuery = "UPDATE EMPPRUNTE SET id_Personne = ? , "
+                    + "id_Media = ? ,"
+                    + "date_Emprunt = ?, "
+                    + "etat = ?"
+                    //+ "date_Retour = ?"
+                    + "WHERE id_Emprunt = ?";
+        
+        
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setInt(1, obj.getPersonne().getId_Personne());
+            pstmt.setInt(2, obj.getMedia().getIdMedia());
+            pstmt.setString(3, obj.getDateEmprunt());
+            pstmt.setString(4, obj.getEtat());
+           // pstmt.setString(5, obj.getDateRetour());
+            pstmt.setInt(5, obj.getIdEmprunt());
+            pstmt.executeUpdate();
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
+        return true;
+    }
+
+    @Override
+    public Emprunt find(int id) {
+        
+        String updateQuery = "SELECT * FROM EMPPRUNTE WHERE id_Emprunt = ?";
+        Emprunt emprunt = null;
+        
+        try {
+            
+           // connexion = getConnection();
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setInt(1, id);
+            resultSet = pstmt.executeQuery();
+            
+            PersonneDAO pdao = new PersonneDAO(connexion);
+            MediaDAO mdao = new MediaDAO(connexion);
+                        
+            if(resultSet.first()){
+                
+                
+               emprunt = new Emprunt(resultSet.getInt(1),
+                       resultSet.getString(2),
+                       pdao.find(resultSet.getInt(3)),
+                       mdao.find(resultSet.getInt(4)),
+                       resultSet.getString(5),
+                       resultSet.getString(6));
+                       
+                       }
+           
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return emprunt;
+    }
+
+    @Override
+    public ArrayList<Emprunt> findAll() {
+       
+        ArrayList<Emprunt> list = new ArrayList();
+        String updateQuery = "SELECT * FROM EMPPRUNTE ORDER BY YEAR(date_emprunt) DESC, MONTH(date_emprunt) DESC, DAY(date_emprunt) DESC";
+        Emprunt emprunt;
+        
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            resultSet = pstmt.executeQuery();
+            
+            PersonneDAO pdao = new PersonneDAO(connexion);
+            MediaDAO mdao = new MediaDAO(connexion);
+                                    
+            while (resultSet.next()){
+                 
+               emprunt = new Emprunt(resultSet.getInt(1),
+                       resultSet.getString(2),
+                       pdao.find(resultSet.getInt(3)),
+                       mdao.find(resultSet.getInt(4)),
+                       resultSet.getString(5),
+                       resultSet.getString(6));
+                       
+                list.add(emprunt);
+            }
+  
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }  
+        
+        return list;
+    }
+    
+   
+    public ArrayList<Emprunt> findAll(String recherche, String etat) {
+       
+        ArrayList<Emprunt> list = new ArrayList();
+        String updateQuery = "SELECT * FROM EMPPRUNTE e, PERSONNE p, MEDIA m WHERE (titre_media LIKE ? "
+                + "OR nom_personne LIKE ? "
+                + "OR prenom_personne LIKE ?)"
+                + "AND e.id_Personne=p.id_Personne "
+                + "AND m.id_Media=e.id_media "
+                + "AND etat LIKE ?"
+                + "ORDER BY etat ASC";
+        Emprunt emprunt;
+        
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setString(1, "%"+recherche+"%");
+            pstmt.setString(2, "%"+recherche+"%");
+            pstmt.setString(3, "%"+recherche+"%");
+            pstmt.setString(4, "%"+etat+"%");
+            resultSet = pstmt.executeQuery();
+            
+            PersonneDAO pdao = new PersonneDAO(connexion);
+            MediaDAO mdao = new MediaDAO(connexion);
+                                    
+            while (resultSet.next()){
+                 
+               emprunt = new Emprunt(resultSet.getInt(1),
+                       resultSet.getString(2),
+                       pdao.find(resultSet.getInt(3)),
+                       mdao.find(resultSet.getInt(4)),
+                       resultSet.getString(5),
+                       resultSet.getString(6));
+                       
+                list.add(emprunt);
+            }
+ 
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);            
+        }  
+        
+        return list;
+    }
+
+    
+    public boolean existe(Media media, String date) throws SQLException, ParseException 
+    {
+        String req = "SELECT * FROM EMPPRUNTE WHERE  ((date_emprunt <= '"+date+"' AND date_retour>= '"+date+"') OR (date_emprunt <= 'DATE_ADD(date,INTERVAL +15 DAY)' AND date_retour>= 'DATE_ADD(date,INTERVAL +15 DAY); ') AND id_Media = "+media.getIdMedia()+"";
+        boolean resultat = false;
+        ResultSet rs = null;
+        try 
+        {    
+            Statement stmt = connexion.createStatement();
+            rs = stmt.executeQuery(req);
+            
+            if (rs.next())
+            {           
+               resultat = true;                       
+            }       
+        } 
+        catch (SQLException ex) 
+        {
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return resultat;
+    }
+    
+     //
+    public int compterLignesRecherche( String recherche, String etat){
+        
+        int nbLignes=0;
+        
+        String updateQuery = "SELECT COUNT(*) AS nbLignes FROM EMPPRUNTE e, PERSONNE p, MEDIA m WHERE (titre_media LIKE ? "
+                + "OR nom_personne LIKE ? "
+                + "OR prenom_personne LIKE ?)"
+                + "AND etat LIKE ?"
+                + "AND e.id_Personne=p.id_Personne "
+                + "AND m.id_Media=e.id_media "
+                + "ORDER BY YEAR(date_emprunt) DESC, MONTH(date_emprunt) DESC, DAY(date_emprunt) DESC";
+                       
+        
+        try {
+           PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setString(1, "%"+recherche+"%");
+            pstmt.setString(2, "%"+recherche+"%");
+            pstmt.setString(3, "%"+recherche+"%");
+            pstmt.setString(4, "%"+etat+"%");
+            resultSet = pstmt.executeQuery();
+           
+                       
+            resultSet = pstmt.executeQuery();
+            resultSet.next();
+            nbLignes = resultSet.getInt("nbLignes");
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);  
+   
+        }
+        
+        return nbLignes;
+    }
+    
+}

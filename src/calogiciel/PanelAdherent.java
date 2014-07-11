@@ -1,0 +1,141 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package calogiciel;
+
+import Modele.Adherent;
+import Modele.DAO.AdherentDAO;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
+import javax.swing.JOptionPane;
+
+
+/**
+ *
+ * @author zemouri.cdi01
+ */
+public class PanelAdherent extends PanelStructure implements ActionListener, ItemListener{
+    
+    
+    public PanelAdherent(FenetrePrincipale fenetre){
+       
+        super(fenetre,new TableModelAdherent(1,1,""));
+        labelTitre.setText("Liste des adhérents");
+       
+        //Création du filtre par état
+        combo1.addItem("Etat");
+        combo1.addItem("En attente");
+        combo1.addItem("Confirmé");
+        combo1.addItemListener(this);
+        barreRecherche.setText("Rechercher par nom ou prénom");
+        
+        boutonAjout.setText("Ajouter Adhérent");
+        MAJcombo4(new AdherentDAO().compterLignesRecherche(1,""),1);
+        labelPage.setText("Page n° ");
+        this.add(labelPage);
+        this.add(pagePlus);
+        this.add(pageMoins);
+        this.add(tableauDeroulant);
+        this.add(combo1);
+        this.setVisible(true);
+        this.responsivePanel();
+    }
+
+      
+    
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        if(ae.getSource().equals(boutonAjout))
+        {
+            fenetre.panelAjoutPersonne = new PanelAjoutPersonne(fenetre, "Ajouter un adhérent");
+            fenetre.add(fenetre.panelAjoutPersonne);
+            fenetre.repaint();
+            fenetre.panelAjoutPersonne.updateUI();
+        }
+    
+       
+        if (ae.getSource().equals(pagePlus))
+       {
+           int pageActuelle = (int)combo4.getSelectedItem();
+           if(pageActuelle<combo4.getItemCount())
+           combo4.setSelectedItem(pageActuelle+1);
+       }
+       
+       if (ae.getSource().equals(pageMoins))
+       {
+           int pageActuelle = (int)combo4.getSelectedItem();
+           if(pageActuelle!=1)
+            combo4.setSelectedItem(pageActuelle-1);
+       }
+    }
+     
+    
+    
+    public void MAJTableau(boolean comboPage){
+            String recherche="";
+            int etat=-1;
+            int page=1 ;
+            
+           this.remove(tableauDeroulant);
+           if (!barreRecherche.getText().equals("Rechercher par nom ou prénom"))
+                recherche = barreRecherche.getText();
+               
+            if (!combo1.getSelectedItem().equals("Etat"))
+                if(combo1.getSelectedItem().equals("Confirmé"))
+              etat = 1;
+                else etat=0;
+                      
+            
+           if (comboPage){
+               page = (int)combo4.getSelectedItem();
+           }
+                         
+           tableauDeroulant=initialiserTableau(new TableModelAdherent(page, etat, recherche));
+           int nblignes = new AdherentDAO().compterLignesRecherche(etat,recherche);
+           MAJcombo4(nblignes,page);
+           responsivePanel();
+           this.add(tableauDeroulant);
+           this.repaint();
+           
+           this.updateUI();
+    }
+     
+    
+        // confirmation et suppression d'un média
+    public void supprimerAdherent(int id) 
+    {
+        // demande de confirmation
+        JOptionPane d = new JOptionPane();
+        int retour = d.showConfirmDialog(fenetre, "Etes vous sur de vouloir supprimer", "Suppression", JOptionPane.OK_CANCEL_OPTION); 
+       
+        // ok : 0 -- annuler : 2 -- close : -1
+        // suppression + actualisation de la page
+        if(retour==0)
+        {
+            AdherentDAO adherent = new AdherentDAO();
+            adherent.delete(id);
+            fenetre.panelAdherent = new PanelAdherent(fenetre);
+            fenetre.add(fenetre.panelAdherent);
+            fenetre.repaint();
+        }
+    }
+   
+
+    void modifierAdherent(Adherent adherent) {
+         changerPanel("Modifier un adhérent");
+         fenetre.panelAjoutPersonne.initialiserModif(adherent);
+    }
+    
+    public void changerPanel(String titre){
+        
+        fenetre.panelAjoutPersonne = new PanelAjoutPersonne(fenetre,titre);
+        fenetre.add(fenetre.panelAjoutPersonne);
+        fenetre.panelAjoutPersonne.updateUI();
+        fenetre.repaint();
+    }
+    
+ }

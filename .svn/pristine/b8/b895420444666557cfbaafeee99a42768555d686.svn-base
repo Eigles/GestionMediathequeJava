@@ -1,0 +1,357 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package calogiciel;
+
+import Modele.DAO.PersonneDAO;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.RowFilter;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+
+/**
+ *
+ * @author poisson.cdi01
+ */
+public class PanelStructure extends JPanel implements ActionListener, MouseListener, KeyListener, ItemListener{
+    protected Style style;
+    protected JScrollPane tableauDeroulant; 
+    protected JLabel labelTitre, labelFiltre,labelPage;
+    protected JComboBox combo1, combo2, combo3, combo4 = null;
+    protected JTextField barreRecherche;
+    protected JButton boutonAjout, pagePlus, pageMoins;
+    protected JButton boutonAjoutBDD;
+    protected int nbColonne;
+    protected FenetrePrincipale fenetre;
+    protected JTable tableau;
+    int height,width, margeCote,margeHeight,heightLabel,widthLabel,heightTableau;
+    protected TableRowSorter<TableModel> sorter; 
+    protected RowFilter<TableModel, Object> rf1, rf2, rf3,rf4;
+    protected RowFilter<TableModel,Object> fooBarFilter;
+    TableModel modele;
+
+    
+    public PanelStructure(FenetrePrincipale fenetre, TableModel mod){
+        
+        this.modele = mod;
+       
+        this.fenetre = fenetre;
+        this.fenetre.remove(fenetre.panelCourant);
+        this.fenetre.panelCourant = this;
+        this.setLayout(null);
+        tableauDeroulant =  initialiserTableau(modele);
+        labelPage = new JLabel("Page n° ");
+        labelTitre = new JLabel("");        
+        labelFiltre = new JLabel("Filtrer par : ");        
+        combo1 = new JComboBox();
+        combo2 = new JComboBox();
+        combo3 = new JComboBox(); 
+        combo4=new JComboBox();
+        
+        combo1.setBackground(Color.white);
+        combo2.setBackground(Color.white);
+        combo3.setBackground(Color.white);
+        combo4.setBackground(Color.white);
+        
+        barreRecherche = new JTextField();
+        barreRecherche.addMouseListener(this);
+        barreRecherche.addKeyListener(this);
+        boutonAjout = new JButton();
+        boutonAjout.addActionListener(this);     
+        
+        
+        pagePlus=new JButton();
+        pagePlus.setBackground(Color.white);
+        pageMoins = new JButton();
+        pageMoins.setBackground(Color.white);
+        pagePlus.addActionListener(this);
+        pageMoins.addActionListener(this);
+                
+        this.add(labelTitre);
+        this.add(labelFiltre);
+        
+        pagePlus.setIcon(new ImageIcon("resources/next.png"));
+        pageMoins.setIcon(new ImageIcon("resources/previous.png"));
+       
+        this.add(barreRecherche);
+        this.add(boutonAjout);
+        this.responsivePanel();     
+        this.setVisible(true);           
+    }
+    
+    
+    public JScrollPane initialiserTableau(TableModel model){
+        
+        tableau = new JTable(model);
+        
+        if (existeColonne(tableau, "Modifier")){
+            tableau.getColumn("Modifier").setCellRenderer(new ButtonRenderer());
+            tableau.getColumn("Modifier").setCellEditor(new DeleteButtonEditor(tableau.getModel(),"Modifier",fenetre));
+            tableau.getColumn("Modifier").setMaxWidth(100);
+        }
+        
+         if (existeColonne(tableau, "Prêter")){
+            tableau.getColumn("Prêter").setCellRenderer(new ButtonRenderer());
+            tableau.getColumn("Prêter").setCellEditor(new DeleteButtonEditor(tableau.getModel(),"Prêter",fenetre));
+            tableau.getColumn("Prêter").setMaxWidth(100);
+        }
+        
+        if (existeColonne(tableau, "Adhérer")){
+            tableau.getColumn("Adhérer").setCellRenderer(new ButtonRenderer());
+            tableau.getColumn("Adhérer").setCellEditor(new DeleteButtonEditor(tableau.getModel(),"Adhérer",fenetre));
+            tableau.getColumn("Adhérer").setMaxWidth(100);
+        }
+        
+        if (existeColonne(tableau, "Supprimer")){
+            tableau.getColumn("Supprimer").setCellRenderer(new ButtonRenderer());
+            tableau.getColumn("Supprimer").setCellEditor(new DeleteButtonEditor(tableau.getModel(),"Supprimer",fenetre));
+            tableau.getColumn("Supprimer").setMaxWidth(100);
+        }
+        
+         if (existeColonne(tableau, "Confirmer")){
+          
+            tableau.getColumn("Confirmer").setCellRenderer(new ButtonRenderer());
+            tableau.getColumn("Confirmer").setCellEditor(new DeleteButtonEditor(tableau.getModel(),"Confirmer",fenetre));
+            tableau.getColumn("Confirmer").setMinWidth(90);
+            tableau.getColumn("Confirmer").setMaxWidth(100);
+        }
+         
+          if (existeColonne(tableau, "Action")){
+          
+            tableau.getColumn("Action").setCellRenderer(new ButtonRenderer());
+            tableau.getColumn("Action").setCellEditor(new DeleteButtonEditor(tableau.getModel(),"Action",fenetre));
+            tableau.getColumn("Action").setMinWidth(90);
+            tableau.getColumn("Action").setMaxWidth(100);
+        }
+        
+        tableau.setRowHeight(24);
+        tableau.getTableHeader().setPreferredSize(new Dimension(0, 40));
+        tableau.getTableHeader().setBackground(Color.white);
+        tableau.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 18));
+        tableau.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        
+        sorter = new TableRowSorter<>(model); 
+        tableau.setRowSorter(sorter);
+        tableau.addMouseListener(this);
+        return new JScrollPane(tableau);
+       
+    }
+    
+
+    public void responsivePanel()
+    {
+        margeCote = this.fenetre.WidthEcran(0.01);
+        width = (this.fenetre.WidthEcran(1)-(margeCote));
+        margeHeight = (int)(fenetre.panelEnTete.getHeight()+fenetre.panelMenu.getHeight());
+        height = (int)(this.fenetre.getHeight()-margeHeight);
+        heightLabel = (int)(this.getHeight()*0.05);
+        widthLabel = (int)(this.getWidth()/8);
+        this.setBounds(0,margeHeight,width,height);
+        labelTitre.setBounds(0,0,(int)(widthLabel),heightLabel);
+        labelFiltre.setBounds((int)(widthLabel*1),0,widthLabel,heightLabel);
+        combo1.setBounds((int)(widthLabel*2),0,widthLabel,heightLabel);
+        combo2.setBounds((int)(widthLabel*3),0,widthLabel,heightLabel);
+        combo3.setBounds((int)(widthLabel*4),0,widthLabel,heightLabel);
+        
+        barreRecherche.setBounds((int)(widthLabel*5),0,widthLabel,heightLabel);
+        boutonAjout.setBounds((int)(widthLabel*6),0,widthLabel,heightLabel);
+        heightTableau = (int)(this.getHeight()-(heightLabel*2)-(this.getHeight()*0.05));
+        tableauDeroulant.setBounds(0,heightLabel,width,heightTableau);
+        
+        //Boutons et combos de pagination
+        combo4.setBounds(width/2, heightLabel+heightTableau,40,25);
+        pagePlus.setBounds(width/2+45, heightLabel+heightTableau,24,24);
+        pageMoins.setBounds(width/2-30, heightLabel+heightTableau,24,24);    
+        labelPage.setBounds(width/2-90, heightLabel+heightTableau+5,50,20);         
+    } 
+
+    
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        
+    }
+        
+
+    @Override
+    public void mouseClicked(MouseEvent me) {
+        
+    }
+
+    
+    @Override
+    public void mousePressed(MouseEvent me) {
+        if (me.getSource().equals(barreRecherche)){
+          if (barreRecherche.getText().equalsIgnoreCase("Rechercher par titre")
+             ||(barreRecherche.getText().equalsIgnoreCase("Rechercher par titre ou emprunteur"))
+             ||(barreRecherche.getText().equalsIgnoreCase("Rechercher par nom ou prénom"))){
+            barreRecherche.setText("");
+          }
+        }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent me) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent me) { 
+    }
+
+    @Override
+    public void mouseExited(MouseEvent me) {
+        
+    }
+
+    private boolean existeColonne(JTable tableau, String str) {
+        for(int i =0; i<tableau.getColumnCount();i++){
+            if (tableau.getColumnName(i).equals(str))
+                return true;
+        }
+        return false;
+    }
+    
+   
+    //Méthode appelée lorsqu'on tape entrée dans la barre de recherche
+    @Override
+    public void keyReleased(KeyEvent ke) {
+          
+        if(ke.getKeyCode() == KeyEvent.VK_BACK_SPACE){
+           if(this instanceof PanelMedia)               
+               ((PanelMedia)this).MAJTableau(false);
+           
+           if(this instanceof PanelPret)
+              ((PanelPret)this).MAJTableau(false);
+           
+           if(this instanceof PanelAdherent){
+              ((PanelAdherent)this).MAJTableau(false);
+           }        
+           
+            if(this instanceof PanelSympathisant){
+               ((PanelSympathisant)this).MAJTableau(false);
+           }         
+        } 
+    }  
+
+    
+    @Override
+    public void keyTyped(KeyEvent ke) {
+    }
+
+    @Override
+    public void keyPressed(KeyEvent ke) {
+    }
+    
+    
+    //Mise à jour de la combobox affichant le nombre de pages
+    public void MAJcombo4(int nblignes, int page){
+        
+        if(this.isAncestorOf(combo4))
+        this.remove(combo4);
+        combo4 = new JComboBox();
+        combo4.setSize(50,30);
+               
+        int nbPages = (nblignes-1)/30 + 1;
+        for(int i =1; i<= nbPages;i++){
+            combo4.addItem(i);
+        }
+        combo4.setSelectedItem(page);
+        combo4.addItemListener(this);
+        this.add(combo4);
+        this.repaint();
+    }
+
+    
+    
+    @Override
+   public void itemStateChanged(ItemEvent e) 
+    {
+        
+        if (e.getStateChange()==ItemEvent.SELECTED)
+        {
+           boolean comboPage=false;
+           
+            //Si l'action vient du listener "nombre de pages"
+            if(e.getSource().equals(combo4)){
+                
+                comboPage=true;
+              if(this instanceof PanelMedia)
+               ((PanelMedia)this).MAJTableau(comboPage);
+              
+              if(this instanceof PanelSympathisant)
+               ((PanelSympathisant)this).MAJTableau(comboPage);
+              
+              if(this instanceof PanelAdherent)
+               ((PanelAdherent)this).MAJTableau(comboPage);
+              
+              if(this instanceof PanelPret)
+               ((PanelPret)this).MAJTableau(comboPage);
+              
+              //Si c'est une autre combobox
+            }else{
+                
+                //Si c'est la combo1 on cherche quel est le panel d'origine 
+                 if(e.getSource().equals(combo1)){
+                     if(this instanceof PanelAdherent){
+                                             
+                         ((PanelAdherent)this).MAJTableau(false);
+                     }
+                     if(this instanceof PanelMedia)
+                         ((PanelMedia)this).MAJTableau(comboPage);
+                     if(this instanceof PanelPret) 
+                         ((PanelPret)this).MAJTableau(comboPage);
+                 
+                 }    
+                 else{
+                           ((PanelMedia)this).MAJTableau(comboPage);
+                     
+                }
+            }        
+        } 
+    }
+   
+   
+   
+       public void supprimerSympathisant(int id) 
+    {
+        // demande de confirmation
+        JOptionPane d = new JOptionPane();
+        int retour = d.showConfirmDialog(fenetre, "Etes vous sur de vouloir supprimer", "Suppression", JOptionPane.OK_CANCEL_OPTION); 
+       
+        // ok : 0 -- annuler : 2 -- close : -1
+        // suppression + actualisation de la page
+        if(retour==0)
+        {
+            PersonneDAO sympathisant = new PersonneDAO();
+            sympathisant.delete(id);
+            fenetre.panelSympathisant = new PanelSympathisant(fenetre);
+            fenetre.add(fenetre.panelSympathisant);
+            fenetre.repaint();
+        }
+    }
+    
+}
+   
+
+

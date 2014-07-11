@@ -1,0 +1,245 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package Modele.DAO;
+
+
+import Modele.Adherent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ *
+ * @author martineau.cdi01
+ */
+public class AdherentDAO extends DAO<Adherent>{
+    
+    public AdherentDAO(Connection conn){
+        super(conn);
+    }
+    
+    public AdherentDAO(){
+        super();
+    }
+    
+
+    @Override
+    public boolean create(Adherent obj) {
+       
+        String create="INSERT INTO ADHERENT(id_Personne, date_Adhesion, confirme) VALUES (?,?,?)";
+        //String idPersonne="SELECT id_Personne WHERE nom_Personne = ?";
+        try {
+            
+            //connexion = getConnection();
+            PreparedStatement pstmt = connexion.prepareStatement(create, PreparedStatement.RETURN_GENERATED_KEYS);
+            
+            pstmt.setInt(1, obj.getPersonne().getId_Personne());
+            pstmt.setString(2, obj.getDateAdhesion());
+            pstmt.setBoolean(3, obj.isConfirme());
+                        
+            pstmt.executeUpdate();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return true;
+    }
+
+    @Override
+    public boolean delete(int id) {
+       
+        String deleteQuery = "DELETE FROM ADHERENT WHERE id_Adherent = ? ";
+        try {
+            
+           // connexion = getConnection();
+            PreparedStatement pstmt = connexion.prepareStatement(deleteQuery);
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+           
+        } catch (SQLException ex) {
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return true;
+    }
+
+    @Override
+    public boolean update(Adherent obj) {
+       
+        String updateQuery = "UPDATE ADHERENT SET id_Personne = ? , "
+                    + "confirme = ? ,"
+                    + "date_Adhesion = ?"
+                    + "WHERE id_Adherent = ?";
+        try {
+            
+           // connexion = getConnection();
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            
+            pstmt.setInt(1, obj.getPersonne().getId_Personne());
+            pstmt.setBoolean(2, obj.isConfirme());
+            pstmt.setString(3, obj.getDateAdhesion());
+            pstmt.setInt(4, obj.getId());
+            
+            pstmt.executeUpdate();
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
+        
+        return true;
+    }
+
+    
+    @Override
+    public Adherent find(int id) {
+         
+        String updateQuery = "SELECT * FROM ADHERENT WHERE id_Adherent = ?";
+        Adherent adherent = null;
+        
+        try {
+            
+           // connexion = getConnection();
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setInt(1, id);
+            resultSet = pstmt.executeQuery();
+            
+            PersonneDAO pdao = new PersonneDAO(connexion);
+                        
+            if(resultSet.first()){
+                
+                
+               adherent = new Adherent(resultSet.getInt(1),
+                       resultSet.getString(2),
+                       resultSet.getBoolean(3),
+                       pdao.find(resultSet.getInt(6)),
+                       resultSet.getString(7));
+                       
+                       }
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return adherent;
+    }
+        
+
+
+    public ArrayList<Adherent> findAll() {
+        
+        ArrayList<Adherent> list = new ArrayList();
+        String updateQuery = "SELECT * FROM ADHERENT ORDER BY confirme ASC";
+        Adherent adherent;
+        
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            resultSet = pstmt.executeQuery();
+            
+            PersonneDAO pdao = new PersonneDAO(connexion);
+              
+            
+            while (resultSet.next()){
+                
+               adherent = new Adherent(resultSet.getInt(1),
+                       resultSet.getString(2),
+                       resultSet.getBoolean(3),
+                       pdao.find(resultSet.getInt(6)),
+                       resultSet.getString(7));
+                                              
+                list.add(adherent);
+  
+            }
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }        
+        
+        return list;
+    }
+    
+    
+    public ArrayList<Adherent> findAll(int numeroPage, String recherche) {
+        
+        ArrayList<Adherent> list = new ArrayList();
+        int min = (numeroPage-1)*30;
+        int nblignes = 30;
+        
+        String updateQuery = "SELECT * FROM ADHERENT FROM ADHERENT a, PERSONNE p WHERE "
+                + "a.id_Personne=p.id_Personne "
+                + "AND(prenom_personne LIKE ? OR nom_personne LIKE ?)"
+                + "LIMIT ?,?";
+        Adherent adherent;
+        
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setInt(1,min);
+            pstmt.setInt(2,nblignes);
+            resultSet = pstmt.executeQuery();
+            
+            PersonneDAO pdao = new PersonneDAO(connexion);
+              
+            
+            while (resultSet.next()){
+                
+               adherent = new Adherent(resultSet.getInt(1),
+                       resultSet.getString(2),
+                       resultSet.getBoolean(3),
+                       pdao.find(resultSet.getInt(6)),
+                       resultSet.getString(7));
+                                              
+                list.add(adherent);
+  
+            }
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }        
+        
+        return list;
+    }
+
+    public int compterLignesRecherche(String recherche) {
+        int nbLignes=0;
+        
+        String updateQuery = "SELECT COUNT(*) AS nblignes FROM ADHERENT a, PERSONNE p WHERE "
+                + "a.id_Personne=p.id_Personne "
+                + "AND(prenom_personne LIKE ? OR nom_personne LIKE ?)";
+                       
+        
+        try {
+           PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setString(1, "%"+recherche+"%");
+            pstmt.setString(2, "%"+recherche+"%");
+            resultSet = pstmt.executeQuery();
+           
+                       
+            resultSet = pstmt.executeQuery();
+            resultSet.next();
+            nbLignes = resultSet.getInt("nbLignes");
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);  
+   
+        }
+        
+        return nbLignes;
+    }
+    
+}

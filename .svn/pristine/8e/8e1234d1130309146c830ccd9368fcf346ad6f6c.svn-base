@@ -1,0 +1,100 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package calogiciel;
+
+
+import Modele.DAO.PersonneDAO;
+import Modele.Personne;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.PatternSyntaxException;
+import javax.swing.RowFilter;
+import javax.swing.table.TableModel;
+
+/**
+ *
+ * @author zemouri.cdi01
+ */
+public class PanelSympathisant extends PanelStructure implements ActionListener{
+   
+       
+    public PanelSympathisant(FenetrePrincipale fenetre)
+    {
+        super(fenetre, new TableModelSympathisant(""));
+        labelTitre.setText("Liste des sympahisants");
+        labelFiltre.setText("");
+        
+        barreRecherche.setText("Rechercher par nom et prénom");
+        combo1.addItemListener(this);
+        
+         boutonAjout.setText("Ajouter sympathisant"); 
+        this.setVisible(true);
+        MAJcombo4(new PersonneDAO().compterLignesRecherche(""),1);
+        this.add(labelPage);
+        this.add(pagePlus);
+        this.add(pageMoins);
+        this.add(tableauDeroulant);
+        this.responsivePanel();
+    }
+    
+
+    public void MAJTableau(){
+        fooBarFilter = RowFilter.andFilter(((PanelSympathisant)this).creerFiltreRecherche());
+        sorter.setRowFilter(fooBarFilter);
+    }
+    
+    
+    
+    //Création des filtres de recherche + ajout des filtres combobox
+    public List<RowFilter<TableModel,Object>> creerFiltreRecherche(){
+        
+          ArrayList<RowFilter<TableModel,Object>> filters = new ArrayList<RowFilter<TableModel,Object>>();
+            
+            String text1;
+            text1 = (String) barreRecherche.getText();
+            
+                           
+              if(!(text1.equals("")||text1.equals("Rechercher par nom et prénom"))){
+                    try
+                    {
+                          rf4 = RowFilter.regexFilter(text1,0);
+                          filters.add(rf4);  
+                  }
+
+                catch (PatternSyntaxException ex)
+                {
+                    System.out.println("erreur combo");
+                }     
+            }
+        return filters; 
+    }
+    
+     @Override
+    public void actionPerformed(ActionEvent ae) {
+        if(ae.getSource().equals(boutonAjout))
+        {
+            changerPanel("Ajouter un sympathisant");
+        }
+    }
+
+    public void changerPanel(String titre){
+        
+        fenetre.panelAjoutPersonne = new PanelAjoutPersonne(fenetre,titre);
+        fenetre.add(fenetre.panelAjoutPersonne);
+        fenetre.panelAjoutPersonne.updateUI();
+        fenetre.repaint();
+    }
+    
+    
+    void modifierSympathisant(Personne pers) {
+       
+        changerPanel("Modifier un sympathisant");
+        fenetre.panelAjoutPersonne.initialiserModif(pers);
+    }
+}

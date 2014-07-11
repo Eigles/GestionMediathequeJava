@@ -1,0 +1,390 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package calogiciel;
+
+import Modele.Adherent;
+import Modele.DAO.AdherentDAO;
+import Modele.DAO.PersonneDAO;
+import Modele.DAO.VilleDAO;
+import Modele.Personne;
+import Modele.Ville;
+import com.toedter.calendar.JDateChooser;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+/**
+ *
+ * @author zemouri.cdi01
+ */
+public class PanelAjoutPersonne extends JPanel implements ActionListener{
+    FenetrePrincipale fenetrePrincipale;
+    JLabel labelTitre,label1,label2,label3,label4,label5,label6,label7,label8,label9,label10,labelEnter;
+    JTextField inputNom,inputPrenom,inputMail,inputTelephone,inputAdresse,inputCP;
+    JDateChooser inputDateNaiss;
+    JComboBox inputAdministrateur,inputVille;
+    JButton valider,retour;
+    int height,margeCote,width;
+    int idPersonne;
+    private ImageIcon icon;
+    public PanelAjoutPersonne(FenetrePrincipale fenetrePrincipale,String titre)
+    {
+        this.fenetrePrincipale = fenetrePrincipale;
+        this.fenetrePrincipale.remove(fenetrePrincipale.panelCourant);
+        this.fenetrePrincipale.panelCourant = this;
+        this.setLayout(null);
+        
+        /*Titre*/
+        labelTitre = new JLabel(titre);
+        this.add(labelTitre);
+        
+        /*Nom*/
+        label1 = new JLabel("Nom *");
+        inputNom = new JTextField();
+        this.add(label1);
+        this.add(inputNom);
+        
+        /*Prenom*/
+        label2 = new JLabel("Prenom *");
+        this.add(label2);
+        inputPrenom = new JTextField();
+        this.add(inputPrenom);
+        
+        /*Date naissance*/
+        label3 = new JLabel("Date Naissance");
+        this.add(label3);
+        inputDateNaiss = new JDateChooser();
+        this.add(inputDateNaiss);
+        
+        /*Mail*/
+        label4 = new JLabel("Mail *");
+        this.add(label4);
+        inputMail = new JTextField();
+        this.add(inputMail);
+        
+        /*Telephone*/
+        label5 = new JLabel("Telephone *");
+        this.add(label5);
+        inputTelephone = new JTextField();
+        this.add(inputTelephone);
+        
+        /*Adresse*/
+        label6 = new JLabel("Adresse");
+        this.add(label6);
+        inputAdresse = new JTextField();
+        this.add(inputAdresse);
+        
+        /*Administrateur*/
+        label7 = new JLabel("Administrateur");
+        this.add(label7);
+        inputAdministrateur = new JComboBox();
+        inputAdministrateur.addItem("non");
+        inputAdministrateur.addItem("oui");
+        this.add(inputAdministrateur);
+        
+        /*CP*/
+        label8 = new JLabel("Code postal");
+        this.add(label8);
+        inputCP = new JTextField();
+        inputCP.addActionListener(this);
+        inputVille = new JComboBox();
+        this.add(inputCP);
+        labelEnter = new JLabel("Appuyer sur entrée pour afficher les villes correspondantes");
+        this.add(labelEnter);
+        
+        /*Ville*/
+        label9 = new JLabel("Ville");
+        this.add(labelTitre);
+        this.add(label1);
+        this.add(label2);
+        this.add(label3);
+        this.add(label4);
+        this.add(label5);
+        this.add(label6);
+        this.add(label7);
+        this.add(label8);
+        this.add(label9);
+        
+        this.add(inputVille);
+        
+        valider = new JButton("Valider");
+        valider.addActionListener(this);
+        this.add(valider);
+        retour = new JButton("Retour");
+        retour.addActionListener(this);
+        this.add(retour);
+        this.setVisible(true);
+        this.responsivePanel();
+    }
+    
+    public final void responsivePanel()
+    {
+        height = (int)this.fenetrePrincipale.getHeight()-((margeCote*2)+fenetrePrincipale.panelEnTete.getHeight()+fenetrePrincipale.panelMenu.getHeight());
+        margeCote = this.fenetrePrincipale.WidthEcran(0.02);
+        width = (int)this.fenetrePrincipale.WidthEcran(1)-(2*margeCote);        
+        this.setBounds(margeCote,fenetrePrincipale.panelMenu.getHeight()+margeCote+fenetrePrincipale.panelEnTete.getHeight(),width,height);
+        /*label*/
+        labelTitre.setBounds((int)(this.getWidth()*0.50),10,(int)(this.getWidth()*0.50),(int)(this.getHeight()*0.10) );
+        label1.setBounds((int)(this.getWidth()*0.05),(int)(this.getHeight()*0.10),(int)(this.getWidth()*0.10),(int)(this.getHeight()*0.05));
+        inputNom.setBounds((int)(this.getWidth()*0.20),(int)(this.getHeight()*0.10),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        label2.setBounds((int)(this.getWidth()*0.05),(int)(this.getHeight()*0.15),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        inputPrenom.setBounds((int)(this.getWidth()*0.20),(int)(this.getHeight()*0.15),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        label3.setBounds((int)(this.getWidth()*0.05),(int)(this.getHeight()*0.20),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        inputDateNaiss.setBounds((int)(this.getWidth()*0.20),(int)(this.getHeight()*0.20),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        label4.setBounds((int)(this.getWidth()*0.05),(int)(this.getHeight()*0.25),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        inputMail.setBounds((int)(this.getWidth()*0.20),(int)(this.getHeight()*0.25),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        label5.setBounds((int)(this.getWidth()*0.05),(int)(this.getHeight()*0.30),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        inputTelephone.setBounds((int)(this.getWidth()*0.20),(int)(this.getHeight()*0.30),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        label6.setBounds((int)(this.getWidth()*0.05),(int)(this.getHeight()*0.35),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        inputAdresse.setBounds((int)(this.getWidth()*0.20),(int)(this.getHeight()*0.35),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        label7.setBounds((int)(this.getWidth()*0.05),(int)(this.getHeight()*0.40),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        inputAdministrateur.setBounds((int)(this.getWidth()*0.20),(int)(this.getHeight()*0.40),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        label8.setBounds((int)(this.getWidth()*0.05),(int)(this.getHeight()*0.45),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        inputCP.setBounds((int)(this.getWidth()*0.20),(int)(this.getHeight()*0.45),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        labelEnter.setBounds((int)(this.getWidth()*0.46),(int)(this.getHeight()*0.45),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        label9.setBounds((int)(this.getWidth()*0.05),(int)(this.getHeight()*0.50),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        inputVille.setBounds((int)(this.getWidth()*0.20),(int)(this.getHeight()*0.50),(int)(this.getWidth()*0.25),(int)(this.getHeight()*0.05));
+        valider.setBounds((int)(this.getWidth()*0.15),(int)(this.getHeight()*0.55),(int)(this.getWidth()*0.10),(int)(this.getHeight()*0.05));
+        retour.setBounds((int)(this.getWidth()*0.05),(int)(this.getHeight()*0.55),(int)(this.getWidth()*0.10),(int)(this.getHeight()*0.05));
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        boolean admin;
+        if(inputCP.hasFocus())
+        {
+            inputVille.removeAllItems();
+            VilleDAO ville = new VilleDAO();
+            List<Ville> listeVille = (new VilleDAO()).findAllCP(inputCP.getText().replaceAll(" ", ""));
+            for(Ville obj : listeVille)
+            {
+                inputVille.addItem(obj);
+            }
+            this.remove(labelEnter);
+        }
+        if(inputAdministrateur.getSelectedItem().equals("oui"))
+        {
+            admin = true;
+        }
+        else
+        {
+            admin = false;
+        }
+        
+        if(ae.getSource().equals(valider))
+        {
+            SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd");
+            //Si une ville a été saisie
+            Ville ville;
+            if (inputVille.getSelectedItem()!=null)
+                     ville= new Ville(((Ville)inputVille.getSelectedItem()).getIdVille(), inputVille.getSelectedItem().toString(),inputCP.getText());
+                    else ville=null;
+            
+            Personne personne;
+            String date_str=null;
+            if (inputDateNaiss.getDate()!=null){
+                date_str=formatDate.format(inputDateNaiss.getDate());
+                
+            }
+            
+            personne = new Personne(0, inputNom.getText(), inputPrenom.getText(),date_str ,inputMail.getText(),ville, admin,inputTelephone.getText(),inputAdresse.getText());
+            
+            if(verifAjoutPersonne())
+            {
+                
+                if(labelTitre.getText().equals("Modifier un sympathisant")) {
+                     personne.setId_Personne(idPersonne);
+                     if(new PersonneDAO().update(personne))
+                         retourPanelSympathisant();
+                }
+                 
+                if(labelTitre.getText().equals("Ajouter un sympathisant")) {
+                       if(new PersonneDAO().create(personne)) 
+                        retourPanelSympathisant();
+                    }
+                    
+                    
+                if(labelTitre.getText().equalsIgnoreCase("Ajouter un adhérent"))
+                {
+                    new PersonneDAO().create(personne);
+                    AdherentDAO adherentDao = new AdherentDAO();
+                    Adherent adherent = new Adherent(0, formatDate.format(new java.util.Date()), Boolean.FALSE, personne, null);
+                    if(adherentDao.create(adherent))
+                    {
+                       retourPanelAdherent();
+                    }
+                }
+                
+                if(labelTitre.getText().equalsIgnoreCase("Modifier un adhérent")){
+                    personne.setId_Personne(idPersonne);
+                    new PersonneDAO().update(personne);
+                    AdherentDAO adherentDao = new AdherentDAO();
+                    Adherent adherent = new Adherent(0, formatDate.format(new java.util.Date()), Boolean.FALSE, personne, null);
+                    if(adherentDao.update(adherent))                       
+                        retourPanelAdherent();     
+                 }
+            }
+            
+            else
+            {
+                JLabel erreur = new JLabel("Tous les champs ne sont pas remplis");
+                erreur.setForeground(Color.red);
+                erreur.setBounds(100, 20, 300, 30);
+                this.add(erreur);
+                this.repaint();
+            }
+        }
+        if(ae.getSource().equals(retour))
+        {
+            if(labelTitre.getText().equalsIgnoreCase("Ajouter un adhérent")||labelTitre.getText().equalsIgnoreCase("Modifier un adhérent"))
+            {
+                fenetrePrincipale.panelAdherent = new PanelAdherent(fenetrePrincipale);
+                fenetrePrincipale.add(fenetrePrincipale.panelAdherent);
+                fenetrePrincipale.panelAdherent.updateUI();
+            }
+            else
+            {
+                fenetrePrincipale.panelSympathisant = new PanelSympathisant(fenetrePrincipale);
+                fenetrePrincipale.add(fenetrePrincipale.panelSympathisant);
+                fenetrePrincipale.panelSympathisant.updateUI();
+            }
+                fenetrePrincipale.repaint();
+        }
+    }
+    
+    
+    public void retourPanelAdherent(){
+        
+        fenetrePrincipale.remove(this);
+        fenetrePrincipale.panelAdherent = new PanelAdherent(fenetrePrincipale);
+        fenetrePrincipale.add(fenetrePrincipale.panelAdherent);
+        JOptionPane d = new JOptionPane();
+        d.showMessageDialog(fenetrePrincipale, "Ajout effectuée.", "information", JOptionPane.INFORMATION_MESSAGE);
+        fenetrePrincipale.repaint();    
+    }
+    
+    
+    public void retourPanelSympathisant(){
+        
+        fenetrePrincipale.remove(this);
+        fenetrePrincipale.panelSympathisant = new PanelSympathisant(fenetrePrincipale);
+        fenetrePrincipale.add(fenetrePrincipale.panelSympathisant);
+        JOptionPane d = new JOptionPane();
+        d.showMessageDialog(fenetrePrincipale, "Ajout effectuée.", "information", JOptionPane.INFORMATION_MESSAGE);
+        fenetrePrincipale.repaint();    
+    }
+    
+    
+    
+   public boolean verifAjoutPersonne()
+   {
+       if(inputNom.getText().isEmpty()||inputPrenom.getText().isEmpty()
+               ||inputAdresse.getText().isEmpty()||inputMail.getText().isEmpty()
+               ||inputTelephone.getText().isEmpty())
+       {
+           return false;
+       }
+       else if(!Pattern.matches("[a-zA-Z0-9]+((-|_|\\.)?[a-zA-Z0-9])*", inputNom.getText()))
+       {
+           inputNom.setBackground(Color.red);
+           return false;
+       }
+       else if(!Pattern.matches("[a-zA-Z0-9]+((-|_|\\.)?[a-zA-Z0-9])*", inputPrenom.getText()))
+       {
+           inputPrenom.setBackground(Color.red);
+           return false;
+       }
+       else if(!Pattern.matches("[a-zA-Z0-9]+((-|_|\\.)?[a-zA-Z0-9])*@[a-zA-Z0-9]+((-|_|\\.)?[a-zA-Z0-9])*.[a-zA-Z]{2,6}", inputMail.getText()))
+       {
+           inputMail.setBackground(Color.red);
+           return false;
+       }
+       else
+       {
+            return true;
+       }
+   }
+
+   //Remplir les champs du formulaire pour modifier une personne
+    void initialiserModif(Personne pers) {
+        
+        idPersonne=pers.getId_Personne();
+        inputNom.setText(pers.getNom_Personne());
+        inputPrenom.setText(pers.getPrenom_Personne());
+        inputDateNaiss.setDate(StringToDate(pers.getDate_Naissance()));
+        inputMail.setText(pers.getMail_Personne());
+        inputTelephone.setText(pers.getTelephone());
+        inputAdresse.setText(pers.getAdresse());
+        if(pers.isAdministrateur()){
+            inputAdministrateur.setSelectedItem("oui");
+        }
+        else 
+            inputAdministrateur.setSelectedItem("non");
+        
+        if (pers.getVille()!=null){
+            inputCP.setText(pers.getVille().getCp());
+            inputVille.addItem(pers.getVille().getNomVille());
+            inputVille.setSelectedItem(pers.getVille().getNomVille());
+        } 
+    }
+    
+    
+    //Remplir les champs du formulaire pour modifier un adhérent
+    void initialiserModif(Adherent adherent) {
+        
+        idPersonne=adherent.getPersonne().getId_Personne();
+        inputNom.setText(adherent.getPersonne().getNom_Personne());
+        inputPrenom.setText(adherent.getPersonne().getPrenom_Personne());
+        inputDateNaiss.setDate(StringToDate(adherent.getPersonne().getDate_Naissance()));
+        inputMail.setText(adherent.getPersonne().getMail_Personne());
+        inputTelephone.setText(adherent.getPersonne().getTelephone());
+        inputAdresse.setText(adherent.getPersonne().getAdresse());
+        if(adherent.getPersonne().isAdministrateur()){
+            inputAdministrateur.setSelectedItem("oui");
+        }
+        else 
+            inputAdministrateur.setSelectedItem("non");
+        
+        if (adherent.getPersonne().getVille()!=null){
+            inputCP.setText(adherent.getPersonne().getVille().getCp());
+            inputVille.addItem(adherent.getPersonne().getVille());
+          
+        } 
+    }
+    
+    
+    //Transformer une chaine de caractère en date
+    public Date StringToDate(String date_str){
+        
+        String formatOrg = "yyyy-MM-dd";
+        Date date = null;
+        SimpleDateFormat formatOrigine = new SimpleDateFormat(formatOrg, Locale.FRENCH);
+        try {
+            date = formatOrigine.parse(date_str.trim());
+        } catch (ParseException ex) {
+            Logger.getLogger(PanelAjoutPersonne.class.getName()).log(Level.SEVERE, null, ex);
+        }
+       return date; 
+    }
+}
+

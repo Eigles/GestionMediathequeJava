@@ -1,0 +1,480 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package Modele.DAO;
+
+import Modele.Auteur;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import Modele.Media;
+import java.sql.Connection;
+import java.sql.Statement;
+
+/**
+ *
+ * @author martineau.cdi01
+ */
+public class MediaDAO extends DAO<Media>{
+    
+    public MediaDAO(Connection conn){
+        super(conn);
+    }
+        
+        public MediaDAO(){
+        super();
+    
+    }
+
+    @Override
+    public boolean create(Media obj) {
+        
+        String create="INSERT INTO MEDIA(description_Media, lien_Photo, titre_Media, isbn_Media, localisation, id_TypeMedia,"
+                + " id_Auteur, id_Etat, id_Genre, annee_Parution, resume, tome, pages, format, maison_edition) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(create);
+            
+            pstmt.setString(1, obj.getDescription());
+            pstmt.setString(2, obj.getLienPhoto());
+            pstmt.setString(3, obj.getTitre());
+            pstmt.setString(4, obj.getIsbn());
+            pstmt.setString(5, obj.getLocalisation());
+            pstmt.setInt(6, obj.getTypeMedia().getIdTypeMedia());
+            pstmt.setInt(7, obj.getAuteur().getIdAuteur());
+            pstmt.setInt(8, obj.getEtat().getIdEtat());
+            pstmt.setInt(9, obj.getGenre().getIdGenre());
+            pstmt.setInt(10, obj.getAnneeParution());
+            pstmt.setString(11, obj.getResume());
+            pstmt.setString(12, obj.getTome());
+            pstmt.setInt(13, obj.getPages());
+            pstmt.setString(14, obj.getFormat());
+            pstmt.setString(15, obj.getMaisonEdition());
+            
+            pstmt.executeUpdate();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return true;
+    }
+
+    
+    @Override
+    public boolean delete(int id) {
+        String deleteQuery = "DELETE FROM MEDIA WHERE id_Media = ? ";
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(deleteQuery);
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+           
+        } catch (SQLException ex) {
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return true;
+    }
+    
+
+    @Override
+    public boolean update(Media obj) {
+        String updateQuery = "UPDATE MEDIA SET titre_Media = ? , "
+                    + "lien_Photo = ? ,"
+                    + "description_Media = ? ,"
+                    + "isbn_Media = ?, "
+                    + "localisation = ?, "
+                    + "id_TypeMedia = ?, "
+                    + "id_Auteur = ?, "
+                    + "id_Genre = ?, "
+                    + "id_Etat = ?, "
+                    + "maison_edition = ?, "
+                    + "annee_Parution = ?, "
+                    + "resume = ?, "
+                    + "tome = ?, "
+                    + "pages = ? , "
+                    + "format = ? "                    
+                    + "WHERE id_Media = ?";
+        try {            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setString(1, obj.getTitre());
+            pstmt.setString(2, obj.getLienPhoto());
+            pstmt.setString(3, obj.getDescription());
+            pstmt.setString(4, obj.getIsbn());
+            pstmt.setString(5, obj.getLocalisation());
+            pstmt.setInt(6, obj.getTypeMedia().getIdTypeMedia());
+            pstmt.setInt(7, obj.getAuteur().getIdAuteur());
+            pstmt.setInt(8, obj.getGenre().getIdGenre());
+            pstmt.setInt(9, obj.getEtat().getIdEtat());
+            pstmt.setString(10, obj.getMaisonEdition());
+            pstmt.setInt(11, obj.getAnneeParution());
+            pstmt.setString(12, obj.getResume());
+            pstmt.setString(13, obj.getTome());
+            pstmt.setInt(14, obj.getPages());
+            pstmt.setString(15, obj.getFormat());
+            pstmt.setInt(16, obj.getIdMedia());
+            pstmt.executeUpdate();
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
+        
+        return true;
+    }
+
+    
+    @Override
+    public Media find(int id) {
+        
+        String updateQuery = "SELECT * FROM MEDIA WHERE id_Media = ?";
+        Media media = null;
+        
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setInt(1, id);
+            resultSet = pstmt.executeQuery();
+            
+            AuteurDAO adao = new AuteurDAO(connexion);
+            TypeMediaDAO tdao = new TypeMediaDAO(connexion);
+            GenreDAO gdao = new GenreDAO(connexion);
+            EtatDAO edao = new EtatDAO(connexion);
+            
+            if(resultSet.first()){
+                
+                
+               media = new Media(resultSet.getInt(1),
+                       resultSet.getString(4),
+                       adao.find(resultSet.getInt(8)),
+                       gdao.find(resultSet.getInt(11)),
+                       resultSet.getString(6),
+                       edao.find(resultSet.getInt(10)),
+                       resultSet.getString(5),
+                       resultSet.getString(3),
+                       tdao.find(resultSet.getInt(7)),
+                       resultSet.getString(2),
+                       resultSet.getBoolean(12),
+                       resultSet.getInt(13),
+                       resultSet.getString(14),
+                       resultSet.getString(15),
+                       resultSet.getInt(16),
+                       resultSet.getString(17),
+                       resultSet.getString(18)
+                        );
+                       
+                       }
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+            
+        }
+        return media;
+    }
+    
+    
+    
+     public ArrayList<Media> findAll() {        
+        ArrayList<Media> list = new ArrayList();
+        String updateQuery = "SELECT * FROM MEDIA ORDER BY titre_Media";     
+        Media media;
+        
+        try {            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            resultSet = pstmt.executeQuery();            
+            
+            AuteurDAO adao = new AuteurDAO(connexion);
+            TypeMediaDAO tdao = new TypeMediaDAO(connexion);
+            GenreDAO gdao = new GenreDAO(connexion);
+            EtatDAO edao = new EtatDAO(connexion);
+            
+            while (resultSet.next()){
+                
+               media = new Media(resultSet.getInt(1),
+                       resultSet.getString(4),
+                       adao.find(resultSet.getInt(8)),
+                       gdao.find(resultSet.getInt(11)),
+                       resultSet.getString(6),
+                       edao.find(resultSet.getInt(10)),
+                       resultSet.getString(5),
+                       resultSet.getString(3),
+                       tdao.find(resultSet.getInt(7)),
+                       resultSet.getString(2),
+                       resultSet.getBoolean(12),
+                       resultSet.getInt(13),
+                       resultSet.getString(14),
+                       resultSet.getString(15),
+                       resultSet.getInt(16),
+                       resultSet.getString(17),
+                       resultSet.getString(18));
+                       
+                list.add(media);
+            }
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+           
+        }        
+        
+        return list;}
+    
+    // ajout d'un pret, retourne la liste correspondant à la chaine entrée par l'utilisateur (autocompletion)
+    public ArrayList<Media> findAllAuto(String chaine) 
+    {        
+        ArrayList<Media> list = new ArrayList();
+        String updateQuery = "SELECT * FROM MEDIA WHERE titre_Media Like '"+chaine+"%' AND disponible = 1  ORDER BY titre_Media";     
+        Media media;
+        
+        try {            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            resultSet = pstmt.executeQuery();            
+            
+            AuteurDAO adao = new AuteurDAO(connexion);
+            TypeMediaDAO tdao = new TypeMediaDAO(connexion);
+            GenreDAO gdao = new GenreDAO(connexion);
+            EtatDAO edao = new EtatDAO(connexion);
+            
+            while (resultSet.next()){
+                
+               media = new Media(resultSet.getInt(1),
+                       resultSet.getString(4),
+                       adao.find(resultSet.getInt(8)),
+                       gdao.find(resultSet.getInt(11)),
+                       resultSet.getString(6),
+                       edao.find(resultSet.getInt(10)),
+                       resultSet.getString(5),
+                       resultSet.getString(3),
+                       tdao.find(resultSet.getInt(7)),
+                       resultSet.getString(2),
+                       resultSet.getBoolean(12),
+                       resultSet.getInt(13),
+                       resultSet.getString(14),
+                       resultSet.getString(15),
+                       resultSet.getInt(16),
+                       resultSet.getString(17),
+                       resultSet.getString(18));
+                       
+                list.add(media);
+            }
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+           
+        }        
+        
+        return list;
+    }
+    
+    public ArrayList<Media> findAll(int numeroPage) {
+        
+        ArrayList<Media> list = new ArrayList();
+        int min = (numeroPage-1)*30;
+        int nblignes = 30;
+        String updateQuery = "SELECT * FROM MEDIA ORDER BY titre_Media LIMIT ?,?";     
+        Media media;
+        
+        try {
+            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setInt(1,min);
+            pstmt.setInt(2,nblignes);
+            resultSet = pstmt.executeQuery();
+            
+            
+            AuteurDAO adao = new AuteurDAO(connexion);
+            TypeMediaDAO tdao = new TypeMediaDAO(connexion);
+            GenreDAO gdao = new GenreDAO(connexion);
+            EtatDAO edao = new EtatDAO(connexion);
+            
+            while (resultSet.next()){
+                
+               media = new Media(resultSet.getInt(1),
+                       resultSet.getString(4),
+                       adao.find(resultSet.getInt(8)),
+                       gdao.find(resultSet.getInt(11)),
+                       resultSet.getString(6),
+                       edao.find(resultSet.getInt(10)),
+                       resultSet.getString(5),
+                       resultSet.getString(3),
+                       tdao.find(resultSet.getInt(7)),
+                       resultSet.getString(2),
+                       resultSet.getBoolean(12),
+                       resultSet.getInt(13),
+                       resultSet.getString(14),
+                       resultSet.getString(15),
+                       resultSet.getInt(16),
+                       resultSet.getString(17),
+                       resultSet.getString(18));
+                       
+                list.add(media);
+            }
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+           
+        }        
+        
+        return list;
+    }
+    
+    public ArrayList<Media> findAll(int numeroPage, String genre, Auteur auteur, int dispo, String recherche ) {
+        String nom="",prenom ="";
+        ArrayList<Media> list = new ArrayList();
+        int min = (numeroPage-1)*30;
+        int nblignes = 30;
+        
+        String queryGenre="AND id_Genre IN (SELECT id_Genre FROM GENRE WHERE code_Genre LIKE ?) ";
+        if (genre.equals("")){
+            queryGenre ="AND (id_Genre IN (SELECT id_Genre FROM GENRE WHERE code_Genre LIKE ?) OR id_Genre IS NULL) ";
+        }
+        int i=6;
+        String queryDispo= "AND disponible = ? ";
+        if(dispo!=0 && dispo!=1){
+            queryDispo="";
+            i--;}
+            
+        
+        String updateQuery = "SELECT * FROM MEDIA WHERE titre_Media LIKE ?  "
+                + queryGenre
+                + "AND id_Auteur IN (SELECT id_Auteur FROM AUTEUR WHERE nom_Auteur LIKE ? AND prenom_Auteur LIKE ?) "
+                + queryDispo
+                + "ORDER BY titre_Media LIMIT ?,?";     
+        Media media;
+        
+        try {
+            if (auteur!=null){
+                nom=auteur.getNom();
+                prenom=auteur.getPrenom();
+            }
+            
+            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+           // pstmt.setString(1,"%"+dispo+"%");
+            pstmt.setString(1,"%"+recherche+"%");
+            pstmt.setString(2,"%"+genre+"%");
+            pstmt.setString(3,"%"+nom+"%");
+            pstmt.setString(4,"%"+prenom+"%");
+            if (i==6){
+                pstmt.setInt(i-1,dispo);
+            }
+            pstmt.setInt(i,min);
+            pstmt.setInt(i+1,nblignes);
+            resultSet = pstmt.executeQuery();
+            
+            
+            AuteurDAO adao = new AuteurDAO(connexion);
+            TypeMediaDAO tdao = new TypeMediaDAO(connexion);
+            GenreDAO gdao = new GenreDAO(connexion);
+            EtatDAO edao = new EtatDAO(connexion);
+            
+            while (resultSet.next()){
+                
+               media = new Media(resultSet.getInt(1),
+                       resultSet.getString(4),
+                       adao.find(resultSet.getInt(8)),
+                       gdao.find(resultSet.getInt(11)),
+                       resultSet.getString(6),
+                       edao.find(resultSet.getInt(10)),
+                       resultSet.getString(5),
+                       resultSet.getString(3),
+                       tdao.find(resultSet.getInt(7)),
+                       resultSet.getString(2),
+                       resultSet.getBoolean(12),
+                       resultSet.getInt(13),
+                       resultSet.getString(14),
+                       resultSet.getString(15),
+                       resultSet.getInt(16),
+                       resultSet.getString(17),
+                       resultSet.getString(18));
+                       
+                list.add(media);
+            }
+           
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+           
+        }        
+        
+        return list;
+    }
+    
+    public int compterLignes(){
+             int nbLignes=0;
+        try {
+                        
+             Statement statement = connexion.createStatement();
+             resultSet = statement.executeQuery("SELECT COUNT(*) AS nbLignes FROM MEDIA");
+             
+             resultSet.next();
+             nbLignes = resultSet.getInt("nbLignes");
+           
+        } catch (SQLException ex) {
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return nbLignes;   
+    }
+    
+    
+    
+    public int compterLignesRecherche( String genre, Auteur auteur, int dispo, String recherche){
+        
+        int nbLignes=0;
+        String nom="",prenom ="";
+         String queryGenre="AND id_Genre IN (SELECT id_Genre FROM GENRE WHERE code_Genre LIKE ?) ";
+        if (genre.equals("")){
+            queryGenre ="AND (id_Genre IN (SELECT id_Genre FROM GENRE WHERE code_Genre LIKE ?) OR id_Genre IS NULL) ";
+        }
+        int i=5;
+        String queryDispo= "AND disponible = ? ";
+        if(dispo!=0 && dispo!=1){
+            queryDispo="";
+            i--;}
+            
+        
+        String updateQuery = "SELECT COUNT(*) AS nbLignes FROM MEDIA WHERE titre_Media LIKE ?  "
+                + queryGenre
+                + "AND id_Auteur IN (SELECT id_Auteur FROM AUTEUR WHERE nom_Auteur LIKE ? AND prenom_Auteur LIKE ?) "
+                + queryDispo;     
+        
+        
+        try {
+            if (auteur!=null){
+                nom=auteur.getNom();
+                prenom=auteur.getPrenom();
+            }
+            
+            
+            PreparedStatement pstmt = connexion.prepareStatement(updateQuery);
+            pstmt.setString(1,"%"+recherche+"%");
+            pstmt.setString(2,"%"+genre+"%");
+            pstmt.setString(3,"%"+nom+"%");
+            pstmt.setString(4,"%"+prenom+"%");
+            if (i==5){
+                pstmt.setInt(5,dispo);
+            }
+            
+            resultSet = pstmt.executeQuery();
+            resultSet.next();
+            nbLignes = resultSet.getInt("nbLignes");
+        } catch (SQLException ex) {
+            
+            Logger.getLogger(MediaDAO.class.getName()).log(Level.SEVERE, null, ex);  
+   
+        }
+        
+        return nbLignes;
+    }
+}

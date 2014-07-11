@@ -1,0 +1,102 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package calogiciel;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+
+/**
+ *
+ * @author zemouri.cdi01
+ */
+public class PanelAccueil extends JPanel implements ActionListener{
+    private FenetrePrincipale fenetrePrincipale;
+    protected Style style;
+    private JButton mediatheque,utilisateur;
+    private int width,height,margeCote,heightDepart,widthDepart,margeBas;
+    public PanelAccueil(FenetrePrincipale fenetre)
+    {
+        this.fenetrePrincipale = fenetre;
+        this.fenetrePrincipale.panelCourant = this;
+        style = new Style();
+        mediatheque = new JButton();
+        mediatheque.setText("Médiathèque");
+        this.add(mediatheque);
+        mediatheque.addActionListener(this);
+        utilisateur = new JButton();
+        utilisateur.setText("Utlisateur");
+        this.add(utilisateur);
+        utilisateur.addActionListener(this);
+        this.style.getStylePanelAcceuil(this);
+        this.setLayout(null);
+        this.setVisible(true);
+        responsivePanel();
+    }
+    public void responsivePanel()
+    {
+       int widthBoutton,heightButton,widthDepartMediatheque,witdhDepartUtilisateur,margeWidthBoutton,margeHeightBoutton;
+       /*Positionnement panel*/
+       margeBas = this.fenetrePrincipale.WidthEcran(0.05);
+       margeCote = this.fenetrePrincipale.WidthEcran(0.05);
+       width = (fenetrePrincipale.WidthEcran(1)-(2*margeCote));
+       height = (fenetrePrincipale.HeightEcran(1)-heightDepart - margeBas);
+       widthDepart = margeCote;
+       heightDepart = (this.fenetrePrincipale.HeightEcran(0.05)+this.fenetrePrincipale.panelEnTete.getHeight());
+       this.setBounds(widthDepart, heightDepart, width, height);
+       /*Positionnement boutton Mediatheque*/
+       widthBoutton = (int)(this.getWidth()*0.20);
+       margeWidthBoutton = (int)((this.getWidth()-(widthBoutton*2))/3);
+       widthDepartMediatheque = (int)(margeWidthBoutton);
+       heightButton = (int)(this.getHeight()*0.50);
+       margeHeightBoutton = (int)((this.getHeight()- heightButton)/2);
+       mediatheque.setBounds(widthDepartMediatheque, margeHeightBoutton, widthBoutton, heightButton);
+       /*Position boutton utilisateur*/
+       witdhDepartUtilisateur = (int)(margeWidthBoutton*2+widthBoutton);
+       utilisateur.setBounds(witdhDepartUtilisateur, margeHeightBoutton, widthBoutton, heightButton);
+       
+    }
+
+    public JButton getMediatheque() {
+        return mediatheque;
+    }
+
+    public void setMediatheque(JButton mediatheque) {
+        this.mediatheque = mediatheque;
+    }
+
+    public JButton getUtilisateur() {
+        return utilisateur;
+    }
+
+    public void setUtilisateur(JButton utilisateur) {
+        this.utilisateur = utilisateur;
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent ae) { 
+       if(ae.getSource().equals(mediatheque))
+       {
+           fenetrePrincipale.panelMenu = new PanelMenu(fenetrePrincipale, "resources/Books.png", "Médiathèque", "Média", "Prêt");           
+           fenetrePrincipale.add(fenetrePrincipale.panelMenu);        
+           fenetrePrincipale.panelMedia = new PanelMedia(fenetrePrincipale);             
+           fenetrePrincipale.add(fenetrePrincipale.panelMedia);
+           fenetrePrincipale.panelMedia.updateUI();
+           fenetrePrincipale.repaint();
+       }
+        if(ae.getSource().equals(utilisateur))
+       {
+           fenetrePrincipale.panelMenu = new PanelMenu(fenetrePrincipale, "resources/user.png", "Utilisateur", "Sympathisant", "Adhérent");           
+           fenetrePrincipale.add(fenetrePrincipale.panelMenu);
+           fenetrePrincipale.panelSympathisant = new PanelSympathisant(fenetrePrincipale);
+           fenetrePrincipale.add(fenetrePrincipale.panelSympathisant);
+           fenetrePrincipale.panelSympathisant.updateUI();
+           fenetrePrincipale.repaint();
+       }
+    }
+}
